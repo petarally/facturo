@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Račun</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+      }
+      #company-info p {
+        margin: 0;
+        padding: 0;
+      }
+      .invoice-container {
+        max-width: 800px;
+        margin: 20px auto;
+        padding: 20px;
+        border: 1px solid #ddd;
+      }
+      .header {
+        background: #ccc;
+        padding: 10px;
+        font-size: 18px;
+        font-weight: bold;
+      }
+      .customer-info {
+        margin-top: 20px;
+      }
+      .dates-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-top: 20px;
+      }
+      .dates-grid div {
+        padding: 8px;
+      }
+      .table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+      .table th,
+      .table td {
+        border: 1px solid #ddd;
+        padding: 8px;
+      }
+      .table th {
+        background: #f4f4f4;
+      }
+      .total {
+        margin-top: 10px;
+        text-align: right;
+      }
+      .footer {
+        margin-top: 20px;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="invoice-container">
+      <div class="header" id="company-info">Informacije o obrtu</div>
+      <div class="customer-info">
+        <strong>Kupac:</strong> <span id="customer-name"></span>
+      </div>
+      <h2>RAČUN</h2>
+      <h3>Br. računa: <span id="invoice-number"></span></h3>
+      <div class="dates-grid">
+        <div><strong>Datum računa:</strong></div>
+        <div><strong>Datum isporuke:</strong></div>
+        <div><strong>Datum dospijeća:</strong></div>
+        <div><span id="invoice-date"></span></div>
+        <div><span id="delivery-date"></span></div>
+        <div><span id="due-date"></span></div>
+      </div>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>RB</th>
+            <th>Naziv robe/usluge</th>
+            <th>J.mj.</th>
+            <th>Količina</th>
+            <th>Cijena</th>
+            <th>Iznos</th>
+          </tr>
+        </thead>
+        <tbody id="invoice-items"></tbody>
+      </table>
+      <div class="total">
+        <strong>Ukupno za platiti: </strong> <span id="total-amount"></span>
+      </div>
+      <div class="footer">
+        <p>PDV nije obračunat temeljem Čl. 90. st.1 Zakona o PDV-u.</p>
+        <p><strong>Napomena:</strong> Odgovorna osoba za izdavanje računa</p>
+        <p id="vlasnik"></p>
+      </div>
+    </div>
+    <script src="invoiceTemplate.js"></script>
+  </body>
+</html>

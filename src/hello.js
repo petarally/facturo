@@ -31,6 +31,12 @@ window.addEventListener("DOMContentLoaded", () => {
       window.location = "createInvoice.html";
     });
 
+  document
+    .getElementById("view-invoices-button")
+    .addEventListener("click", () => {
+      window.location = "viewInvoices.html";
+    });
+
   document.getElementById("back-button").addEventListener("click", () => {
     window.history.back();
   });
