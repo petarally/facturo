@@ -1,0 +1,53 @@
+[
+  {
+    "customerName": "Katja Janjić",
+    "number": "1/1/1",
+    "date": "2023-02-14",
+    "services": [
+      {
+        "name": "Tarot",
+        "price": "95"
+      },
+      {
+        "name": "Konzultacije",
+        "price": "200"
+      }
+    ],
+    "discount": "10",
+    "amount": "85680.00"
+  },
+  {
+    "customerName": "Katja",
+    "number": "1/1/1",
+    "date": "2023-02-14",
+    "services": [
+      {
+        "name": "Tarot",
+        "price": "95"
+      },
+      {
+        "name": "Konzultacije",
+        "price": "200"
+      }
+    ],
+    "discount": 10,
+    "amount": 85680
+  },
+  {
+    "customerName": "katja",
+    "number": "1/1/1",
+    "date": "2023-02-14",
+    "services": [
+      {
+        "name": "Tarot",
+        "price": "95"
+      },
+      {
+        "name": "Konzultacije",
+        "price": "200"
+      }
+    ],
+    "discount": 10,
+    "amount": 85680
+  }
+]

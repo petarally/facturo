@@ -1,0 +1,29 @@
+{
+  "name": "facturo",
+  "version": "1.0.0",
+  "description": "Aplikacija za vođenje knjigu prometa paušalnih obrtnika.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/petarally/facturo.git"
+  },
+  "keywords": [
+    "obrtinci",
+    "paušalisti",
+    "knjiga",
+    "prometa",
+    "računi"
+  ],
+  "author": "Petar Prenc",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/petarally/facturo/issues"
+  },
+  "homepage": "https://github.com/petarally/facturo#readme",
+  "devDependencies": {
+    "electron": "^33.2.1"
+  }
+}
