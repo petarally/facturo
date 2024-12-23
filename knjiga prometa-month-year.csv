@@ -1,0 +1,52 @@
+﻿;;;;;;
+;;;;;;
+Obrazac KPR;;;;;;
+KNJIGA PROMETA ${year}.;;;;;;
+I. OPĆI PODACI O POREZNO, OBVEZNIKU;;;;;;
+1. NAZIV DJELATNOSTI;;;${opis};;9002;ŠIFRA DJELATNOSTI
+2. IME I PREZIME PODUZETNIKA / NOSITELJA ZAJEDNIČKE DJELATNOSTI;;;;${vlasnik};;
+3. ADRESA PREBIVALIŠTA / UOBIČAJENOG BORAVIŠTA;;;;${adresa}, ${grad};;
+4. OIB PODUZETNIKA / NOSITELJA ZAJEDNIČKE DJELATNOSTI;;;;${oib};;
+II.PODACI O POSLOVNOJ JEDINICI;;;;;;
+1. NAZIV DJELATNOSTI;;${opis};;;;
+2. ADRESA;;${adresa}, ${grad};;;;
+RED.  BR.;NADNEVAK;BROJ                                       TEMELJNICE;OPIS ISPRAVA O PRIMICIMA                        U GOTOVINI;IZNOS NAPLAĆEN                             U GOTOVINI/ČEKOVIMA;IZNOS NAPLAĆEN                   BEZGOTOVINSKIM PUTEM(1);UKUPNO NAPLAĆEN IZNOS
+1;2;3;4;5;6;7 (5+6)
+${line_number};${date};${number};;;${discountedAmount};${discountedAmount}
+
+ZBROJ;;;;0,00;${sum};${sum}
+;;;;;;
+1 Popunjava porezni obveznik koji porez na dohodak od samostalne djelatnosti plaća u paušalnom iznosu u skladu s Pravilnikom o paušalnom oporezivanju samostalnih djelatnosti;;;;;;
+;;;;;;
+;;;;;;
+;;;;;;
+;;;;;;
+;;;;;;
+;;;;;;
+;;;;;;
+;;;;;;
+;;;;;;
+;;;;;;
+;;;;;;
+;;;;;;
+;;;;;;
+;;;;;;
+;;;;;;
+;;;;;;
+;;;;;;
+;;;;;;
+;;;;;;
+;;;;;;
+;;;;;;
+;;;;;;
+;;;;;;
+;;;;;;
+;;;;;;
+;;;;;;
+;;;;;;
+;;;;;;
+;;;;;;
+;;;;;;
+;;;;;;
+;;;;;;
+;;;;;;
