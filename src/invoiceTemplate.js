@@ -23,7 +23,9 @@ window.addEventListener("DOMContentLoaded", () => {
   `;
 
   // Populate vlasnik data
-  document.getElementById("vlasnik").textContent = `${companyData.vlasnik}`;
+  document.getElementById(
+    "vlasnik"
+  ).textContent = `${companyData.vlasnik.toUpperCase()}`;
   document.getElementById(
     "invoice-number"
   ).textContent = `${invoiceData.number}`;
@@ -40,15 +42,10 @@ window.addEventListener("DOMContentLoaded", () => {
   // Populate invoice with data
   document.getElementById("customer-name").textContent =
     invoiceData.customerName;
-  document.getElementById("invoice-date").textContent = formatDate(
-    invoiceData.date
-  );
-  document.getElementById("delivery-date").textContent = formatDate(
-    invoiceData.date
-  ); // Assuming delivery date is the same as invoice date
-  document.getElementById("due-date").textContent = formatDate(
-    invoiceData.date
-  ); // Assuming due date is the same as invoice date
+  const formattedDate = formatDate(invoiceData.date);
+  document.querySelectorAll(".invoice-date").forEach((element) => {
+    element.textContent = formattedDate;
+  });
 
   const itemsContainer = document.getElementById("invoice-items");
   invoiceData.services.forEach((item, index) => {
@@ -64,11 +61,28 @@ window.addEventListener("DOMContentLoaded", () => {
     itemsContainer.appendChild(row);
   });
 
-  document.getElementById("total-amount").textContent =
-    invoiceData.amount.toLocaleString("hr-HR", {
+  document.getElementById("total-amount").textContent = new Intl.NumberFormat(
+    "hr-HR",
+    {
       style: "currency",
       currency: "EUR",
-    });
+    }
+  ).format(invoiceData.discountedAmount);
+
+  document.getElementById("total-without-tax").textContent =
+    new Intl.NumberFormat("hr-HR", {
+      style: "currency",
+      currency: "EUR",
+    }).format(invoiceData.totalAmount);
+
+  // Conditionally display discount
+  if (invoiceData.discount > 0) {
+    document.getElementById(
+      "discount"
+    ).textContent = `${invoiceData.discount}%`;
+  } else {
+    document.getElementById("discount").parentElement.style.display = "none";
+  }
 
   // Export to PDF
   document
@@ -89,9 +103,8 @@ window.addEventListener("DOMContentLoaded", () => {
         }
         .invoice-container {
           max-width: 800px;
-          margin: 20px auto;
-          padding: 20px;
-          border: 1px solid #ddd;
+          margin: 80px auto;
+          padding: 80px;
         }
         .header {
           background: #ccc;
@@ -131,6 +144,12 @@ window.addEventListener("DOMContentLoaded", () => {
         .footer {
           margin-top: 20px;
           font-size: 14px;
+        }
+
+        .footer p,
+        .footer .dates-grid div {
+          margin: 0;
+          padding: 0;
         }
         .btn {
           display: inline-block;

@@ -1,1 +1,16 @@
-[]
+[
+  {
+    "customerName": "John Doe",
+    "number": "1/1/1",
+    "date": "2024-12-23",
+    "services": [
+      {
+        "name": "Tarot",
+        "price": "95"
+      }
+    ],
+    "discount": 15,
+    "totalAmount": "95.00",
+    "discountedAmount": "80.75"
+  }
+]

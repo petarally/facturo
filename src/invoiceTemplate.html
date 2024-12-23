@@ -16,9 +16,8 @@
       }
       .invoice-container {
         max-width: 800px;
-        margin: 20px auto;
-        padding: 20px;
-        border: 1px solid #ddd;
+        margin: 40px auto;
+        padding: 40px;
       }
       .header {
         background: #ccc;
@@ -60,7 +59,6 @@
       .total {
         margin-top: 10px;
         text-align: right;
-        font-weight: bold;
         font-size: 16px;
       }
       .footer {
@@ -68,10 +66,12 @@
         font-size: 14px;
         text-align: left;
       }
-      .underline {
-        text-decoration: underline;
-      }
 
+      .footer p,
+      .footer .dates-grid div {
+        margin: 0;
+        padding: 0;
+      }
       .buttons {
         margin-top: 20px;
         text-align: right;
@@ -109,9 +109,9 @@
         <div><strong>Datum računa:</strong></div>
         <div><strong>Datum isporuke:</strong></div>
         <div><strong>Datum dospijeća:</strong></div>
-        <div><span id="invoice-date"></span></div>
-        <div><span id="delivery-date"></span></div>
-        <div><span id="due-date"></span></div>
+        <div><span class="invoice-date"></span></div>
+        <div><span class="invoice-date"></span></div>
+        <div><span class="invoice-date"></span></div>
       </div>
       <table class="table">
         <thead>
@@ -127,29 +127,26 @@
         <tbody id="invoice-items"></tbody>
       </table>
       <div class="total">
-        <p>Ukupno bez PDV-a:</p>
-        <span id="total-without-tax"></span>
-        <br />
+        <p>Ukupno bez PDV-a: <span id="total-without-tax"></span></p>
+        <p>Primijenjen popust: <span id="discount"></span></p>
         <strong>Ukupno za platiti:</strong>
-        <span id="total-amount"></span>
+        <span id="total-amount" style="font-weight: bold"></span>
       </div>
       <div class="footer">
+        <hr />
         <p>PDV nije obračunat temeljem Čl. 90. st.1 Zakona o PDV-u.</p>
-        <p>
-          <strong>Način plaćanja:</strong> <span id="payment-method"></span>
-        </p>
-        <p>
-          <strong>Šifra operatera:</strong> <span id="operator-code"></span>
-        </p>
-        <p>
-          <strong>Transakcijski račun:</strong>
-          <span id="transaction-account"></span>
-        </p>
-        <p><strong>Napomena:</strong> Odgovorna osoba za izdavanje računa</p>
+        <h4 style="text-decoration: underline">Fiskalizacija računa</h4>
+        <div class="dates-grid">
+          <div><p>Način plaćanja</p></div>
+          <div><p>Šifra operatera</p></div>
+          <div><p>Datum</p></div>
+          <div><span>Transakcijski račun</span></div>
+          <div><span>1</span></div>
+          <div><span class="invoice-date"></span></div>
+        </div>
+        <h4 style="text-decoration: underline">Napomena</h4>
+        <p>Odgovorna osoba za izdavanje računa</p>
         <p id="vlasnik"></p>
-      </div>
-      <div class="fiscalization">
-        <p>Fiskalizacija računa: <span id="fiscalization-code"></span></p>
       </div>
     </div>
     <div class="buttons">
