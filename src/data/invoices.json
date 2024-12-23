@@ -12,5 +12,19 @@
     "discount": 15,
     "totalAmount": "95.00",
     "discountedAmount": "80.75"
+  },
+  {
+    "customerName": "Jan",
+    "number": "2/1/1",
+    "date": "2024-02-15",
+    "services": [
+      {
+        "name": "Konzultacije",
+        "price": "200"
+      }
+    ],
+    "discount": 0,
+    "totalAmount": "200.00",
+    "discountedAmount": "200.00"
   }
 ]

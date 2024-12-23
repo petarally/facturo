@@ -53,7 +53,7 @@ II.PODACI O POSLOVNOJ JEDINICI;;;;;;
 1. NAZIV DJELATNOSTI;;${companyData.opis};;;;
 2. ADRESA;;${companyData.adresa}, ${companyData.grad};;;;
 RED.  BR.;NADNEVAK;BROJ                                       TEMELJNICE;OPIS ISPRAVA O PRIMICIMA                        U GOTOVINI;IZNOS NAPLAĆEN                             U GOTOVINI/ČEKOVIMA;IZNOS NAPLAĆEN                   BEZGOTOVINSKIM PUTEM(1);UKUPNO NAPLAĆEN IZNOS
-1;2;3;4;5;6;7 (5+6)`;
+1;2;3;4;5;6;7 (5+6)\n`;
 
     const filteredInvoices = invoicesData.filter((invoice) => {
       const invoiceDate = new Date(invoice.date);
@@ -67,12 +67,14 @@ RED.  BR.;NADNEVAK;BROJ                                       TEMELJNICE;OPIS IS
     filteredInvoices.sort((a, b) => new Date(a.date) - new Date(b.date));
     let sum = 0;
     filteredInvoices.forEach((invoice, index) => {
-      csvContent += `${index + 1};${formatDate(invoice.date)};${
+      csvContent += `${index + 1};${formatDate(invoice.date)};"${
         invoice.number
-      };;;${invoice.discountedAmount};${invoice.discountedAmount}`;
-      sum += invoice.discountedAmount;
+      }";;;${parseFloat(invoice.discountedAmount)};${parseFloat(
+        invoice.discountedAmount
+      )}\n`;
+      sum += parseFloat(invoice.discountedAmount);
     });
-    csvContent += `ZBROJ;;;;0,00;${sum};${sum}`;
+    csvContent += `ZBROJ;;;;0,00;${sum};${sum}\n`;
 
     csvContent += ` 
 ;;;;;;
