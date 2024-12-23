@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const { ipcRenderer } = require("electron");
 
 window.addEventListener("DOMContentLoaded", () => {
   const urlParams = new URLSearchParams(window.location.search);
@@ -56,9 +57,9 @@ window.addEventListener("DOMContentLoaded", () => {
       <td>${index + 1}</td>
       <td>${item.name}</td>
       <td>kom</td>
-      <td>1</td>
-      <td>${item.price} €</td>
-      <td>${item.price} €</td>
+      <td class="text-right">1</td>
+      <td class="text-right">${item.price} €</td>
+      <td class="text-right">${item.price} €</td>
     `;
     itemsContainer.appendChild(row);
   });
@@ -68,4 +69,101 @@ window.addEventListener("DOMContentLoaded", () => {
       style: "currency",
       currency: "EUR",
     });
+
+  // Export to PDF
+  document
+    .getElementById("export-pdf-button")
+    .addEventListener("click", async () => {
+      const invoiceContent =
+        document.getElementById("invoice-content").outerHTML;
+      const styles = `
+      <style>
+        body {
+          font-family: Arial, sans-serif;
+          margin: 0;
+          padding: 0;
+        }
+        #company-info p {
+          margin: 0;
+          padding: 0;
+        }
+        .invoice-container {
+          max-width: 800px;
+          margin: 20px auto;
+          padding: 20px;
+          border: 1px solid #ddd;
+        }
+        .header {
+          background: #ccc;
+          padding: 10px;
+          font-size: 18px;
+          font-weight: bold;
+        }
+        .customer-info {
+          margin-top: 20px;
+          text-align: right;
+        }
+        .dates-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          margin-top: 20px;
+        }
+        .table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-top: 20px;
+        }
+        .table th,
+        .table td {
+          border: 1px solid #ddd;
+          padding: 8px;
+        }
+        .table th {
+          background: #f4f4f4;
+        }
+        .text-right {
+          text-align: right;
+        }
+        .total {
+          margin-top: 10px;
+          text-align: right;
+        }
+        .footer {
+          margin-top: 20px;
+          font-size: 14px;
+        }
+      </style>
+    `;
+      const bootstrapStyles = fs.readFileSync(
+        path.join(__dirname, "css", "bootstrap.min.css"),
+        "utf8"
+      );
+
+      const fullContent = `
+      <html>
+        <head>
+          <style>${bootstrapStyles}</style>
+          ${styles}
+        </head>
+        <body>
+          ${invoiceContent}
+        </body>
+      </html>
+    `;
+      try {
+        const pdfPath = await ipcRenderer.invoke("generate-pdf", {
+          htmlContent: fullContent,
+          invoiceNumber: invoiceData.number,
+        });
+        alert(`PDF saved to: ${pdfPath}`);
+      } catch (error) {
+        console.error("Error generating PDF:", error);
+        alert("Failed to generate PDF.");
+      }
+    });
+
+  // Back button
+  document.getElementById("back-button").addEventListener("click", () => {
+    window.location.href = "viewInvoices.html";
+  });
 });

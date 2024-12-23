@@ -4,6 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Račun</title>
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://stackpath.bootstrapcdn.com; connect-src 'self' https://stackpath.bootstrapcdn.com;"
+    />
     <style>
       body {
         font-family: Arial, sans-serif;
@@ -28,15 +32,12 @@
       }
       .customer-info {
         margin-top: 20px;
+        text-align: right;
       }
       .dates-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 10px;
         margin-top: 20px;
-      }
-      .dates-grid div {
-        padding: 8px;
       }
       .table {
         width: 100%;
@@ -51,6 +52,9 @@
       .table th {
         background: #f4f4f4;
       }
+      .text-right {
+        text-align: right;
+      }
       .total {
         margin-top: 10px;
         text-align: right;
@@ -59,16 +63,19 @@
         margin-top: 20px;
         font-size: 14px;
       }
+      .buttons {
+        margin-top: 20px;
+        text-align: right;
+      }
     </style>
   </head>
   <body>
-    <div class="invoice-container">
+    <div class="invoice-container" id="invoice-content">
       <div class="header" id="company-info">Informacije o obrtu</div>
       <div class="customer-info">
         <strong>Kupac:</strong> <span id="customer-name"></span>
       </div>
-      <h2>RAČUN</h2>
-      <h3>Br. računa: <span id="invoice-number"></span></h3>
+      <h2>RAČUN <span id="invoice-number"></span></h2>
       <div class="dates-grid">
         <div><strong>Datum računa:</strong></div>
         <div><strong>Datum isporuke:</strong></div>
@@ -99,6 +106,13 @@
         <p id="vlasnik"></p>
       </div>
     </div>
+    <div class="buttons">
+      <button class="btn btn-primary" id="export-pdf-button">
+        Export to PDF
+      </button>
+      <button class="btn btn-secondary" id="back-button">Natrag</button>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.3/jspdf.umd.min.js"></script>
     <script src="invoiceTemplate.js"></script>
   </body>
 </html>

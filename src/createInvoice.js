@@ -3,19 +3,32 @@ const path = require("path");
 
 window.addEventListener("DOMContentLoaded", () => {
   const servicesDataPath = path.join(__dirname, "data", "services.json");
+  const invoicesDataPath = path.join(__dirname, "data", "invoices.json");
   const invoiceForm = document.getElementById("invoice-form");
   const invoiceServiceSelect = document.getElementById("invoice-service");
   const invoiceServicesList = document.getElementById("invoice-services");
   const invoiceDiscountInput = document.getElementById("invoice-discount");
   const invoiceAmountInput = document.getElementById("invoice-amount");
+  const invoiceNumberInput = document.getElementById("invoice-number");
+  const lastInvoiceNumberSpan = document.getElementById("last-invoice-number");
   let selectedServices = [];
+
+  // Fetch and display the last invoice number
+  let lastInvoiceNumber = "0/0/0";
+  if (fs.existsSync(invoicesDataPath)) {
+    const invoicesData = JSON.parse(fs.readFileSync(invoicesDataPath));
+    if (invoicesData.length > 0) {
+      lastInvoiceNumber = invoicesData[invoicesData.length - 1].number;
+    }
+  }
+  lastInvoiceNumberSpan.textContent = `Posljednji broj računa: ${lastInvoiceNumber}`;
 
   if (fs.existsSync(servicesDataPath)) {
     const servicesData = JSON.parse(fs.readFileSync(servicesDataPath));
     servicesData.forEach((service) => {
       const option = document.createElement("option");
       option.value = JSON.stringify(service);
-      option.textContent = `${service.name} - ${service.price} kn`;
+      option.textContent = `${service.name} - ${service.price} €`;
       invoiceServiceSelect.appendChild(option);
     });
   }
@@ -27,7 +40,7 @@ window.addEventListener("DOMContentLoaded", () => {
       selectedServices.push(selectedService);
 
       const listItem = document.createElement("li");
-      listItem.textContent = `${selectedService.name}: ${selectedService.price} kn`;
+      listItem.textContent = `${selectedService.name}: ${selectedService.price} €`;
       listItem.classList.add("list-group-item");
       invoiceServicesList.appendChild(listItem);
 
@@ -40,7 +53,7 @@ window.addEventListener("DOMContentLoaded", () => {
     event.preventDefault();
 
     const customerName = document.getElementById("customer-name").value;
-    const invoiceNumber = document.getElementById("invoice-number").value;
+    const invoiceNumber = parseInt(invoiceNumberInput.value);
     const invoiceDate = document.getElementById("invoice-date").value;
     const invoiceDiscount = parseFloat(invoiceDiscountInput.value) || 0;
     const invoiceAmount = parseFloat(invoiceAmountInput.value);
@@ -54,7 +67,6 @@ window.addEventListener("DOMContentLoaded", () => {
       amount: invoiceAmount,
     };
 
-    const invoicesDataPath = path.join(__dirname, "data", "invoices.json");
     let invoicesData = [];
     if (fs.existsSync(invoicesDataPath)) {
       invoicesData = JSON.parse(fs.readFileSync(invoicesDataPath));

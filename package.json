@@ -25,5 +25,8 @@
   "homepage": "https://github.com/petarally/facturo#readme",
   "devDependencies": {
     "electron": "^33.2.1"
+  },
+  "dependencies": {
+    "html-pdf-node": "^1.0.8"
   }
 }
