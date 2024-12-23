@@ -4,10 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Račun</title>
-    <meta
-      http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://stackpath.bootstrapcdn.com; connect-src 'self' https://stackpath.bootstrapcdn.com;"
-    />
     <style>
       body {
         font-family: Arial, sans-serif;
@@ -34,6 +30,10 @@
         margin-top: 20px;
         text-align: right;
       }
+      h2 {
+        text-align: center;
+        font-size: 22px;
+      }
       .dates-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -48,9 +48,11 @@
       .table td {
         border: 1px solid #ddd;
         padding: 8px;
+        text-align: left;
       }
       .table th {
         background: #f4f4f4;
+        font-weight: bold;
       }
       .text-right {
         text-align: right;
@@ -58,14 +60,41 @@
       .total {
         margin-top: 10px;
         text-align: right;
+        font-weight: bold;
+        font-size: 16px;
       }
       .footer {
         margin-top: 20px;
         font-size: 14px;
+        text-align: left;
       }
+      .underline {
+        text-decoration: underline;
+      }
+
       .buttons {
         margin-top: 20px;
         text-align: right;
+      }
+      .button {
+        display: inline-block;
+        padding: 10px 20px;
+        font-size: 14px;
+        text-decoration: none;
+        color: #fff;
+        background-color: #007bff;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      .button:hover {
+        background-color: #0056b3;
+      }
+      .button-secondary {
+        background-color: #6c757d;
+      }
+      .button-secondary:hover {
+        background-color: #5a6268;
       }
     </style>
   </head>
@@ -98,19 +127,34 @@
         <tbody id="invoice-items"></tbody>
       </table>
       <div class="total">
-        <strong>Ukupno za platiti: </strong> <span id="total-amount"></span>
+        <p>Ukupno bez PDV-a:</p>
+        <span id="total-without-tax"></span>
+        <br />
+        <strong>Ukupno za platiti:</strong>
+        <span id="total-amount"></span>
       </div>
       <div class="footer">
         <p>PDV nije obračunat temeljem Čl. 90. st.1 Zakona o PDV-u.</p>
+        <p>
+          <strong>Način plaćanja:</strong> <span id="payment-method"></span>
+        </p>
+        <p>
+          <strong>Šifra operatera:</strong> <span id="operator-code"></span>
+        </p>
+        <p>
+          <strong>Transakcijski račun:</strong>
+          <span id="transaction-account"></span>
+        </p>
         <p><strong>Napomena:</strong> Odgovorna osoba za izdavanje računa</p>
         <p id="vlasnik"></p>
       </div>
+      <div class="fiscalization">
+        <p>Fiskalizacija računa: <span id="fiscalization-code"></span></p>
+      </div>
     </div>
     <div class="buttons">
-      <button class="btn btn-primary" id="export-pdf-button">
-        Export to PDF
-      </button>
-      <button class="btn btn-secondary" id="back-button">Natrag</button>
+      <button class="button" id="export-pdf-button">Export to PDF</button>
+      <button class="button button-secondary" id="back-button">Natrag</button>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.3/jspdf.umd.min.js"></script>
     <script src="invoiceTemplate.js"></script>

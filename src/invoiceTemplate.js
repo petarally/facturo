@@ -132,17 +132,46 @@ window.addEventListener("DOMContentLoaded", () => {
           margin-top: 20px;
           font-size: 14px;
         }
+        .btn {
+          display: inline-block;
+          font-weight: 400;
+          text-align: center;
+          white-space: nowrap;
+          vertical-align: middle;
+          user-select: none;
+          border: 1px solid transparent;
+          padding: 0.375rem 0.75rem;
+          font-size: 1rem;
+          line-height: 1.5;
+          border-radius: 0.25rem;
+          transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+        .btn-primary {
+          color: #fff;
+          background-color: #007bff;
+          border-color: #007bff;
+        }
+        .btn-primary:hover {
+          color: #fff;
+          background-color: #0056b3;
+          border-color: #004085;
+        }
+        .btn-secondary {
+          color: #fff;
+          background-color: #6c757d;
+          border-color: #6c757d;
+        }
+        .btn-secondary:hover {
+          color: #fff;
+          background-color: #5a6268;
+          border-color: #545b62;
+        }
       </style>
     `;
-      const bootstrapStyles = fs.readFileSync(
-        path.join(__dirname, "css", "bootstrap.min.css"),
-        "utf8"
-      );
 
       const fullContent = `
       <html>
         <head>
-          <style>${bootstrapStyles}</style>
           ${styles}
         </head>
         <body>
@@ -154,6 +183,7 @@ window.addEventListener("DOMContentLoaded", () => {
         const pdfPath = await ipcRenderer.invoke("generate-pdf", {
           htmlContent: fullContent,
           invoiceNumber: invoiceData.number,
+          customerName: invoiceData.customerName,
         });
         alert(`PDF saved to: ${pdfPath}`);
       } catch (error) {

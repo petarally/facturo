@@ -22,6 +22,6 @@ window.addEventListener("DOMContentLoaded", () => {
   });
 
   document.getElementById("back-button").addEventListener("click", () => {
-    window.history.back();
+    window.location.href = "hello.html";
   });
 });

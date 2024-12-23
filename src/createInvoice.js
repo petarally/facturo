@@ -53,10 +53,14 @@ window.addEventListener("DOMContentLoaded", () => {
     event.preventDefault();
 
     const customerName = document.getElementById("customer-name").value;
-    const invoiceNumber = parseInt(invoiceNumberInput.value);
+    const invoiceNumber = invoiceNumberInput.value;
     const invoiceDate = document.getElementById("invoice-date").value;
     const invoiceDiscount = parseFloat(invoiceDiscountInput.value) || 0;
-    const invoiceAmount = parseFloat(invoiceAmountInput.value);
+    const totalAmount = selectedServices.reduce(
+      (total, service) => total + parseFloat(service.price),
+      0
+    );
+    const discountedAmount = totalAmount * (1 - invoiceDiscount / 100);
 
     const invoice = {
       customerName: customerName,
@@ -64,7 +68,8 @@ window.addEventListener("DOMContentLoaded", () => {
       date: invoiceDate,
       services: selectedServices,
       discount: invoiceDiscount,
-      amount: invoiceAmount,
+      totalAmount: totalAmount.toFixed(2),
+      discountedAmount: discountedAmount.toFixed(2),
     };
 
     let invoicesData = [];
@@ -93,9 +98,10 @@ window.addEventListener("DOMContentLoaded", () => {
       0
     );
     const discount = parseFloat(invoiceDiscountInput.value) || 0;
+    let discountedAmount = totalAmount;
     if (discount > 0) {
-      totalAmount = totalAmount * (1 - discount / 100);
+      discountedAmount = totalAmount * (1 - discount / 100);
     }
-    invoiceAmountInput.value = totalAmount.toFixed(2);
+    invoiceAmountInput.value = discountedAmount.toFixed(2);
   }
 });
