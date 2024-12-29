@@ -52,7 +52,7 @@ I. OPĆI PODACI O POREZNO, OBVEZNIKU;;;;;;
 II.PODACI O POSLOVNOJ JEDINICI;;;;;;
 1. NAZIV DJELATNOSTI;;${companyData.opis};;;;
 2. ADRESA;;${companyData.adresa}, ${companyData.grad};;;;
-RED.  BR.;NADNEVAK;BROJ                                       TEMELJNICE;OPIS ISPRAVA O PRIMICIMA                        U GOTOVINI;IZNOS NAPLAĆEN                             U GOTOVINI/ČEKOVIMA;IZNOS NAPLAĆEN                   BEZGOTOVINSKIM PUTEM(1);UKUPNO NAPLAĆEN IZNOS
+RED.  BR.;NADNEVAK;BROJ TEMELJNICE;OPIS ISPRAVA O PRIMICIMA U GOTOVINI;IZNOS NAPLAĆEN U GOTOVINI/ČEKOVIMA;IZNOS NAPLAĆEN BEZGOTOVINSKIM PUTEM(1);UKUPNO NAPLAĆEN IZNOS
 1;2;3;4;5;6;7 (5+6)\n`;
 
     const filteredInvoices = invoicesData.filter((invoice) => {

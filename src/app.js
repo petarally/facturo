@@ -14,6 +14,7 @@ document
     const companyAddress = document.getElementById("company-address").value;
     const companyOib = document.getElementById("company-oib").value;
     const companyIban = document.getElementById("company-iban").value;
+    const companyCode = document.getElementById("company-code").value;
 
     const companyData = {
       naziv: companyName,
@@ -23,6 +24,7 @@ document
       adresa: companyAddress,
       oib: companyOib,
       iban: companyIban,
+      kod_djelatnosti: companyCode,
     };
 
     ipcRenderer.send("save-company-data", companyData);
