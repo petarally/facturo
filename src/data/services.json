@@ -1,1 +1,10 @@
-[]
+[
+  {
+    "name": "Tarot",
+    "price": "100"
+  },
+  {
+    "name": "Nova usluga",
+    "price": "500"
+  }
+]

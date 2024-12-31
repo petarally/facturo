@@ -1,1 +1,34 @@
-[]
+[
+  {
+    "customerName": "Ivan Pašić",
+    "number": "1/1/1",
+    "date": "2024-12-31",
+    "services": [
+      {
+        "name": "Tarot",
+        "price": "100"
+      }
+    ],
+    "discount": 0,
+    "totalAmount": "100.00",
+    "discountedAmount": "100.00"
+  },
+  {
+    "customerName": "Ivica Jagić",
+    "number": "2/1/1",
+    "date": "2024-11-25",
+    "services": [
+      {
+        "name": "Tarot",
+        "price": "100"
+      },
+      {
+        "name": "Nova usluga",
+        "price": "500"
+      }
+    ],
+    "discount": 0,
+    "totalAmount": "600.00",
+    "discountedAmount": "600.00"
+  }
+]
