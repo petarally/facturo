@@ -5,12 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Račun</title>
     <style>
-      body {
-        font-family: Arial, sans-serif;
-        margin: 0;
-        padding: 0;
+      @font-face {
+        font-family: "Calibri";
+        src: url("../src/fonts/calibri.ttf") format("truetype");
       }
-      #company-info p {
+      body {
+        font-family: "Calibri", Arial, sans-serif;
         margin: 0;
         padding: 0;
       }
@@ -53,9 +53,6 @@
         background: #f4f4f4;
         font-weight: bold;
       }
-      .text-right {
-        text-align: right;
-      }
       .total {
         margin-top: 10px;
         text-align: right;
@@ -65,12 +62,6 @@
         margin-top: 20px;
         font-size: 14px;
         text-align: left;
-      }
-
-      .footer p,
-      .footer .dates-grid div {
-        margin: 0;
-        padding: 0;
       }
       .buttons {
         margin-top: 20px;
@@ -128,7 +119,9 @@
       </table>
       <div class="total">
         <p>Ukupno bez PDV-a: <span id="total-without-tax"></span></p>
-        <p>Primijenjen popust: <span id="discount"></span></p>
+        <p id="discount-container" style="display: none">
+          Primijenjen popust: <span id="discount"></span>
+        </p>
         <strong>Ukupno za platiti:</strong>
         <span id="total-amount" style="font-weight: bold"></span>
       </div>
@@ -153,7 +146,6 @@
       <button class="button" id="export-pdf-button">Export to PDF</button>
       <button class="button button-secondary" id="back-button">Natrag</button>
     </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.3/jspdf.umd.min.js"></script>
     <script src="invoiceTemplate.js"></script>
   </body>
 </html>

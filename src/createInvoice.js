@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const { dialog } = require("@electron/remote");
 
 window.addEventListener("DOMContentLoaded", () => {
   const servicesDataPath = path.join(__dirname, "data", "services.json");
@@ -13,7 +14,6 @@ window.addEventListener("DOMContentLoaded", () => {
   const lastInvoiceNumberSpan = document.getElementById("last-invoice-number");
   let selectedServices = [];
 
-  // Fetch and display the last invoice number
   let lastInvoiceNumber = "0/0/0";
   if (fs.existsSync(invoicesDataPath)) {
     const invoicesData = JSON.parse(fs.readFileSync(invoicesDataPath));
@@ -49,7 +49,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
   invoiceDiscountInput.addEventListener("input", updateTotalAmount);
 
-  invoiceForm.addEventListener("submit", (event) => {
+  invoiceForm.addEventListener("submit", async (event) => {
     event.preventDefault();
 
     const customerName = document.getElementById("customer-name").value;
@@ -71,6 +71,17 @@ window.addEventListener("DOMContentLoaded", () => {
       totalAmount: totalAmount.toFixed(2),
       discountedAmount: discountedAmount.toFixed(2),
     };
+
+    const saveDialog = await dialog.showSaveDialog({
+      title: "Spremi račun",
+      defaultPath: `racun-${invoiceNumber}.pdf`,
+      filters: [{ name: "PDF", extensions: ["pdf"] }],
+    });
+
+    if (!saveDialog.canceled) {
+      const pdfPath = saveDialog.filePath;
+      // Your PDF generation code goes here using pdfPath
+    }
 
     let invoicesData = [];
     if (fs.existsSync(invoicesDataPath)) {

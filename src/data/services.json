@@ -6,5 +6,9 @@
   {
     "name": "Nova usluga",
     "price": "500"
+  },
+  {
+    "name": "Masaža",
+    "price": "200"
   }
 ]

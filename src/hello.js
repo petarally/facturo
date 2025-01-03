@@ -37,12 +37,6 @@ window.addEventListener("DOMContentLoaded", () => {
       window.location = "viewInvoices.html";
     });
 
-  document
-    .getElementById("view-statistics-button")
-    .addEventListener("click", () => {
-      window.location = "viewStatistics.html";
-    });
-
   document.getElementById("back-button").addEventListener("click", () => {
     window.history.back();
   });

@@ -30,5 +30,33 @@
     "discount": 0,
     "totalAmount": "600.00",
     "discountedAmount": "600.00"
+  },
+  {
+    "customerName": "Emma",
+    "number": "3/1/1",
+    "date": "2025-01-02",
+    "services": [
+      {
+        "name": "Masaža",
+        "price": "200"
+      }
+    ],
+    "discount": 10,
+    "totalAmount": "200.00",
+    "discountedAmount": "180.00"
+  },
+  {
+    "customerName": "Petar",
+    "number": "4/1/1",
+    "date": "2024-01-02",
+    "services": [
+      {
+        "name": "Tarot",
+        "price": "100"
+      }
+    ],
+    "discount": 0,
+    "totalAmount": "100.00",
+    "discountedAmount": "100.00"
   }
 ]

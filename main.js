@@ -1,7 +1,7 @@
-const { app, BrowserWindow, ipcMain } = require("electron");
+const { app, BrowserWindow, ipcMain, dialog } = require("electron");
 const path = require("path");
 const fs = require("fs");
-require("./src/pdfGenerator");
+require("@electron/remote/main").initialize();
 
 let mainWindow;
 
@@ -15,6 +15,8 @@ function createWindow() {
       enableRemoteModule: true,
     },
   });
+
+  require("@electron/remote/main").enable(mainWindow.webContents);
 
   const dataPath = path.join(__dirname, "src", "data", "companyData.json");
 
@@ -51,4 +53,9 @@ ipcMain.on("save-company-data", (event, companyData) => {
 
   // Send a message back to the renderer process to redirect to hello.html
   event.sender.send("data-saved");
+});
+
+ipcMain.handle("show-save-dialog", async (event, options) => {
+  const result = await dialog.showSaveDialog(options);
+  return result;
 });
