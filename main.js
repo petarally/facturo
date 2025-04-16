@@ -3,12 +3,43 @@ const path = require("path");
 const fs = require("fs");
 require("@electron/remote/main").initialize();
 
+// Global references
 let mainWindow;
+const userDataPath = app.getPath("userData");
+
+// Define all data file paths globally
+global.paths = {
+  companyData: path.join(userDataPath, "companyData.json"),
+  invoices: path.join(userDataPath, "invoices.json"),
+  services: path.join(userDataPath, "services.json"),
+  customers: path.join(userDataPath, "customers.json"),
+};
+
+// Initialize data files if they don't exist
+function ensureDataFilesExist() {
+  const files = [
+    { path: global.paths.companyData, defaultContent: "{}" },
+    { path: global.paths.invoices, defaultContent: "[]" },
+    { path: global.paths.services, defaultContent: "[]" },
+    { path: global.paths.customers, defaultContent: "[]" },
+  ];
+
+  files.forEach((file) => {
+    if (!fs.existsSync(file.path)) {
+      try {
+        fs.writeFileSync(file.path, file.defaultContent);
+        console.log(`Created new data file: ${file.path}`);
+      } catch (error) {
+        console.error(`Failed to create data file ${file.path}:`, error);
+      }
+    }
+  });
+}
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 1024,
+    height: 768,
     webPreferences: {
       contextIsolation: false,
       nodeIntegration: true,
@@ -18,16 +49,31 @@ function createWindow() {
 
   require("@electron/remote/main").enable(mainWindow.webContents);
 
-  const dataPath = path.join(__dirname, "src", "data", "companyData.json");
-
-  if (fs.existsSync(dataPath)) {
-    mainWindow.loadFile(path.join(__dirname, "src", "hello.html"));
+  // Check if company data exists to determine which page to load
+  if (fs.existsSync(global.paths.companyData)) {
+    try {
+      const companyData = JSON.parse(fs.readFileSync(global.paths.companyData));
+      if (Object.keys(companyData).length > 0) {
+        mainWindow.loadFile(path.join(__dirname, "src", "hello.html"));
+      } else {
+        mainWindow.loadFile(path.join(__dirname, "src", "index.html"));
+      }
+    } catch (error) {
+      console.error("Error reading company data:", error);
+      mainWindow.loadFile(path.join(__dirname, "src", "index.html"));
+    }
   } else {
     mainWindow.loadFile(path.join(__dirname, "src", "index.html"));
   }
+
+  // Uncomment for development tools
+  // mainWindow.webContents.openDevTools();
 }
 
-app.whenReady().then(createWindow);
+app.whenReady().then(() => {
+  ensureDataFilesExist();
+  createWindow();
+});
 
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
@@ -41,21 +87,117 @@ app.on("activate", () => {
   }
 });
 
+// IPC Handlers for data operations
 ipcMain.on("save-company-data", (event, companyData) => {
-  const dataDir = path.join(__dirname, "src", "data");
-  const dataPath = path.join(dataDir, "companyData.json");
-
-  if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir);
+  try {
+    fs.writeFileSync(
+      global.paths.companyData,
+      JSON.stringify(companyData, null, 2)
+    );
+    event.sender.send("data-saved");
+  } catch (error) {
+    console.error("Error saving company data:", error);
+    event.sender.send("data-save-error", error.message);
   }
-
-  fs.writeFileSync(dataPath, JSON.stringify(companyData, null, 2));
-
-  // Send a message back to the renderer process to redirect to hello.html
-  event.sender.send("data-saved");
 });
 
+// Generic save data handler
+ipcMain.handle("save-data", async (event, { type, data }) => {
+  try {
+    if (!global.paths[type]) {
+      throw new Error(`Invalid data type: ${type}`);
+    }
+
+    fs.writeFileSync(global.paths[type], JSON.stringify(data, null, 2));
+    return { success: true };
+  } catch (error) {
+    console.error(`Error saving ${type} data:`, error);
+    return { success: false, error: error.message };
+  }
+});
+
+// Generic get data handler
+ipcMain.handle("get-data", async (event, type) => {
+  try {
+    if (!global.paths[type]) {
+      throw new Error(`Invalid data type: ${type}`);
+    }
+
+    if (!fs.existsSync(global.paths[type])) {
+      return type === "companyData" ? {} : [];
+    }
+
+    const data = JSON.parse(fs.readFileSync(global.paths[type], "utf8"));
+    return data;
+  } catch (error) {
+    console.error(`Error reading ${type} data:`, error);
+    return type === "companyData" ? {} : [];
+  }
+});
+
+// Get all data paths
+ipcMain.handle("get-data-paths", () => {
+  return global.paths;
+});
+
+// File dialogs
 ipcMain.handle("show-save-dialog", async (event, options) => {
-  const result = await dialog.showSaveDialog(options);
-  return result;
+  try {
+    const result = await dialog.showSaveDialog(options);
+    return result;
+  } catch (error) {
+    console.error("Error in save dialog:", error);
+    return { canceled: true, error: error.message };
+  }
+});
+
+ipcMain.handle("show-open-dialog", async (event, options) => {
+  try {
+    const result = await dialog.showOpenDialog(options);
+    return result;
+  } catch (error) {
+    console.error("Error in open dialog:", error);
+    return { canceled: true, error: error.message };
+  }
+});
+
+// Get font data handler
+ipcMain.handle("get-font-data", async (event, fontName) => {
+  try {
+    const fontPath = path.join(__dirname, "src", "fonts", `${fontName}.ttf`);
+    const fontData = fs.readFileSync(fontPath, "base64");
+    return fontData;
+  } catch (error) {
+    console.error(`Error loading font ${fontName}:`, error);
+    return null;
+  }
+});
+
+// Save PDF handler
+ipcMain.handle("save-pdf", async (event, { filePath, data }) => {
+  try {
+    fs.writeFileSync(filePath, Buffer.from(data));
+    return { success: true };
+  } catch (error) {
+    console.error("Error saving PDF:", error);
+    return { success: false, error: error.message };
+  }
+});
+
+// Get Excel template handler
+ipcMain.handle("get-excel-template", async () => {
+  try {
+    // Updated path to point to the new location
+    const templatePath = path.join(
+      __dirname,
+      "src",
+      "assets",
+      "knjiga-prometa.xlsx"
+    );
+    const templateData = fs.readFileSync(templatePath);
+    return templateData.buffer;
+  } catch (error) {
+    console.error("Error loading Excel template:", error);
+    return null;
+  }
 });

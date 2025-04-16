@@ -1,102 +1,184 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hr">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:;"
+    />
     <title>Račun</title>
     <style>
-      @font-face {
-        font-family: "Calibri";
-        src: url("../src/fonts/calibri.ttf") format("truetype");
+      @media screen {
+        body {
+          background-color: #f5f5f5;
+        }
+        .invoice-container {
+          box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+          background-color: white;
+        }
+        .screen-only {
+          display: block;
+        }
       }
+
+      @media print {
+        body {
+          background-color: white;
+          margin: 0;
+          padding: 0;
+        }
+        .invoice-container {
+          margin: 0;
+          padding: 20px;
+          width: 100%;
+          box-shadow: none;
+        }
+        .screen-only {
+          display: none;
+        }
+        @page {
+          size: A4;
+          margin: 1cm;
+        }
+      }
+
       body {
         font-family: "Calibri", Arial, sans-serif;
         margin: 0;
         padding: 0;
+        font-size: 12pt;
+        line-height: 1.4;
       }
+
       .invoice-container {
-        max-width: 800px;
-        margin: 40px auto;
-        padding: 40px;
+        max-width: 210mm;
+        margin: 20px auto;
+        padding: 30px;
+        box-sizing: border-box;
       }
+
       .header {
-        background: #ccc;
+        background: #f8f8f8;
         padding: 10px;
-        font-size: 18px;
+        font-size: 16px;
         font-weight: bold;
+        border: 1px solid #eee;
+        border-radius: 4px;
       }
+
       .customer-info {
         margin-top: 20px;
         text-align: right;
       }
+
       h2 {
         text-align: center;
-        font-size: 22px;
+        font-size: 20px;
+        margin: 20px 0;
       }
+
       .dates-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        margin-top: 20px;
+        margin: 20px 0;
+        gap: 10px;
       }
+
       .table {
         width: 100%;
         border-collapse: collapse;
-        margin-top: 20px;
+        margin: 20px 0;
       }
+
       .table th,
       .table td {
         border: 1px solid #ddd;
         padding: 8px;
         text-align: left;
       }
+
       .table th {
         background: #f4f4f4;
         font-weight: bold;
       }
+
+      .text-right {
+        text-align: right;
+      }
+
       .total {
-        margin-top: 10px;
+        margin-top: 20px;
         text-align: right;
-        font-size: 16px;
       }
+
       .footer {
-        margin-top: 20px;
-        font-size: 14px;
-        text-align: left;
+        margin-top: 30px;
+        font-size: 12px;
+        border-top: 1px solid #eee;
+        padding-top: 10px;
       }
+
       .buttons {
-        margin-top: 20px;
-        text-align: right;
+        margin-top: 30px;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        gap: 10px;
       }
+
       .button {
-        display: inline-block;
         padding: 10px 20px;
         font-size: 14px;
-        text-decoration: none;
         color: #fff;
         background-color: #007bff;
         border: none;
         border-radius: 4px;
         cursor: pointer;
       }
+
       .button:hover {
         background-color: #0056b3;
       }
+
       .button-secondary {
         background-color: #6c757d;
       }
+
       .button-secondary:hover {
         background-color: #5a6268;
+      }
+
+      /* Ensures page breaks don't happen in awkward places */
+      .avoid-break {
+        page-break-inside: avoid;
       }
     </style>
   </head>
   <body>
+    <!-- Feedback container for messages -->
+    <div
+      id="feedback-container"
+      class="alert screen-only"
+      style="
+        display: none;
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        z-index: 1000;
+      "
+    ></div>
+
     <div class="invoice-container" id="invoice-content">
       <div class="header" id="company-info">Informacije o obrtu</div>
+
       <div class="customer-info">
         <strong>Kupac:</strong> <span id="customer-name"></span>
       </div>
+
       <h2>RAČUN <span id="invoice-number"></span></h2>
-      <div class="dates-grid">
+
+      <div class="dates-grid avoid-break">
         <div><strong>Datum računa:</strong></div>
         <div><strong>Datum isporuke:</strong></div>
         <div><strong>Datum dospijeća:</strong></div>
@@ -104,20 +186,22 @@
         <div><span class="invoice-date"></span></div>
         <div><span class="invoice-date"></span></div>
       </div>
-      <table class="table">
+
+      <table class="table avoid-break">
         <thead>
           <tr>
             <th>RB</th>
             <th>Naziv robe/usluge</th>
             <th>J.mj.</th>
-            <th>Količina</th>
-            <th>Cijena</th>
-            <th>Iznos</th>
+            <th class="text-right">Količina</th>
+            <th class="text-right">Cijena</th>
+            <th class="text-right">Iznos</th>
           </tr>
         </thead>
         <tbody id="invoice-items"></tbody>
       </table>
-      <div class="total">
+
+      <div class="total avoid-break">
         <p>Ukupno bez PDV-a: <span id="total-without-tax"></span></p>
         <p id="discount-container" style="display: none">
           Primijenjen popust: <span id="discount"></span>
@@ -125,10 +209,10 @@
         <strong>Ukupno za platiti:</strong>
         <span id="total-amount" style="font-weight: bold"></span>
       </div>
-      <div class="footer">
-        <hr />
+
+      <div class="footer avoid-break">
         <p>PDV nije obračunat temeljem Čl. 90. st.1 Zakona o PDV-u.</p>
-        <h4 style="text-decoration: underline">Fiskalizacija računa</h4>
+        <h4>Fiskalizacija računa</h4>
         <div class="dates-grid">
           <div><p>Način plaćanja</p></div>
           <div><p>Šifra operatera</p></div>
@@ -137,15 +221,17 @@
           <div><span>1</span></div>
           <div><span class="invoice-date"></span></div>
         </div>
-        <h4 style="text-decoration: underline">Napomena</h4>
+        <h4>Napomena</h4>
         <p>Odgovorna osoba za izdavanje računa</p>
         <p id="vlasnik"></p>
       </div>
     </div>
-    <div class="buttons">
-      <button class="button" id="export-pdf-button">Export to PDF</button>
+
+    <div class="buttons screen-only">
+      <button class="button" id="export-pdf-button">Spremi kao PDF</button>
       <button class="button button-secondary" id="back-button">Natrag</button>
     </div>
-    <script src="invoiceTemplate.js"></script>
+
+    <script src="../invoiceTemplate.js"></script>
   </body>
 </html>

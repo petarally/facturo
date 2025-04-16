@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hr">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -17,113 +17,191 @@
       #last-invoice-number {
         margin-bottom: 10px;
         font-size: 1rem;
-        color: red;
+        color: #dc3545;
       }
       .form-group {
         margin-bottom: 1.5rem;
       }
-      .form-control {
-        border-radius: 0.25rem;
-      }
-      .btn {
-        border-radius: 0.25rem;
-      }
       .container {
-        max-width: 600px;
-        margin-top: 50px;
+        max-width: 800px;
+        margin-top: 30px;
+        margin-bottom: 50px;
       }
-      h1 {
-        margin-bottom: 30px;
+      .service-item {
+        animation: fadeIn 0.3s;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      .card {
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
       }
     </style>
   </head>
   <body>
     <div class="container">
-      <h1 class="text-center">Kreiraj račun</h1>
-      <form id="invoice-form" class="mt-3">
-        <div class="form-group">
-          <label for="customer-name">Ime kupca:</label>
-          <input
-            type="text"
-            class="form-control"
-            id="customer-name"
-            name="customerName"
-            required
-          />
+      <h1 class="text-center mb-4">Kreiraj račun</h1>
+
+      <!-- Feedback area -->
+      <div
+        id="feedback-container"
+        class="alert"
+        style="display: none"
+        role="alert"
+      ></div>
+
+      <div class="card">
+        <div class="card-body">
+          <form id="invoice-form" class="mt-3">
+            <!-- Customer information -->
+            <h4 class="mb-3">Podaci o kupcu</h4>
+            <div class="form-group">
+              <label for="customer-name">Ime kupca:</label>
+              <input
+                type="text"
+                class="form-control"
+                id="customer-name"
+                name="customerName"
+                required
+                autocomplete="off"
+                aria-describedby="customer-name-help"
+              />
+              <small id="customer-name-help" class="form-text text-muted"
+                >Unesite ime kupca</small
+              >
+            </div>
+
+            <!-- Invoice details -->
+            <h4 class="mb-3">Podaci o računu</h4>
+            <div class="form-row">
+              <div class="form-group col-md-6">
+                <label for="invoice-number">Broj računa:</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="invoice-number"
+                  name="invoiceNumber"
+                  placeholder="1/1/2025"
+                  required
+                  pattern="[0-9]+\/[0-9]+\/[0-9]+"
+                  title="Format: broj/redni-broj/godina"
+                />
+                <small id="last-invoice-number" class="form-text"></small>
+              </div>
+
+              <div class="form-group col-md-6">
+                <label for="invoice-date">Datum:</label>
+                <input
+                  type="date"
+                  class="form-control"
+                  id="invoice-date"
+                  name="invoiceDate"
+                  required
+                />
+              </div>
+            </div>
+
+            <!-- Services selection -->
+            <h4 class="mb-3">Usluge</h4>
+            <div class="form-group">
+              <label for="invoice-service">Odaberi uslugu:</label>
+              <div class="input-group">
+                <select
+                  class="form-control"
+                  id="invoice-service"
+                  name="invoiceService"
+                >
+                  <option value="" selected disabled>
+                    -- Odaberi uslugu --
+                  </option>
+                </select>
+                <div class="input-group-append">
+                  <button
+                    type="button"
+                    class="btn btn-secondary"
+                    id="add-service-button"
+                  >
+                    Dodaj
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Odabrane usluge:</label>
+              <ul id="invoice-services" class="list-group">
+                <!-- Services will be added here dynamically -->
+                <li class="list-group-item text-muted" id="no-services-message">
+                  Nema odabranih usluga
+                </li>
+              </ul>
+            </div>
+
+            <!-- Pricing -->
+            <h4 class="mb-3">Izračun cijene</h4>
+            <div class="form-row">
+              <div class="form-group col-md-6">
+                <label for="invoice-discount">Popust (%):</label>
+                <div class="input-group">
+                  <input
+                    type="number"
+                    class="form-control"
+                    id="invoice-discount"
+                    name="invoiceDiscount"
+                    min="0"
+                    max="100"
+                    value="0"
+                  />
+                  <div class="input-group-append">
+                    <span class="input-group-text">%</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-group col-md-6">
+                <label for="invoice-amount">Ukupan iznos:</label>
+                <div class="input-group">
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="invoice-amount"
+                    name="invoiceAmount"
+                    readonly
+                  />
+                  <div class="input-group-append">
+                    <span class="input-group-text">€</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="form-group mt-4 text-center">
+              <button
+                type="submit"
+                class="btn btn-primary btn-lg"
+                id="create-invoice-btn"
+              >
+                Kreiraj račun
+              </button>
+              <button
+                type="button"
+                class="btn btn-secondary ml-2"
+                id="back-button"
+              >
+                Odustani
+              </button>
+            </div>
+          </form>
         </div>
-        <div class="form-group">
-          <label for="invoice-number">Broj računa:</label>
-          <input
-            type="text"
-            class="form-control"
-            id="invoice-number"
-            name="invoiceNumber"
-            required
-          />
-          <small id="last-invoice-number" class="form-text text-muted"></small>
-        </div>
-        <div class="form-group">
-          <label for="invoice-date">Datum:</label>
-          <input
-            type="date"
-            class="form-control"
-            id="invoice-date"
-            name="invoiceDate"
-            required
-          />
-        </div>
-        <div class="form-group">
-          <label for="invoice-service">Usluga:</label>
-          <select
-            class="form-control"
-            id="invoice-service"
-            name="invoiceService"
-          ></select>
-          <button
-            type="button"
-            class="btn btn-secondary mt-2"
-            id="add-service-button"
-          >
-            Dodaj uslugu
-          </button>
-        </div>
-        <div class="form-group">
-          <label for="invoice-services">Odabrane usluge:</label>
-          <ul id="invoice-services" class="list-group"></ul>
-        </div>
-        <div class="form-group">
-          <label for="invoice-discount">Popust (%):</label>
-          <input
-            type="number"
-            class="form-control"
-            id="invoice-discount"
-            name="invoiceDiscount"
-            min="0"
-            max="100"
-          />
-        </div>
-        <div class="form-group">
-          <label for="invoice-amount">Ukupan iznos:</label>
-          <input
-            type="number"
-            class="form-control"
-            id="invoice-amount"
-            name="invoiceAmount"
-            readonly
-          />
-        </div>
-        <button type="submit" class="btn btn-primary btn-block">
-          Kreiraj račun
-        </button>
-      </form>
-      <button
-        type="button"
-        class="btn btn-secondary btn-block mt-3"
-        id="back-button"
-      >
-        Natrag
-      </button>
+      </div>
     </div>
+
     <script src="createInvoice.js"></script>
   </body>
 </html>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hr">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,63 +7,159 @@
       http-equiv="Content-Security-Policy"
       content="default-src 'self'; script-src 'self' https://code.jquery.com https://stackpath.bootstrapcdn.com; style-src 'self' 'unsafe-inline' https://stackpath.bootstrapcdn.com; img-src 'self' data:;"
     />
-    <title>Pregled računa</title>
+    <title>Pregled računa | Facturo</title>
     <link
       href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
       rel="stylesheet"
     />
     <style>
-      #invoices-list p {
-        margin: 0;
-        padding: 2px;
+      .card {
+        transition: transform 0.2s;
+        margin-bottom: 15px;
       }
-      #invoices-list p:last-child {
-        border-bottom: none;
+      .card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+      .filter-section {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+      }
+      .invoice-amount {
+        font-weight: bold;
+        color: #28a745;
+      }
+      .page-header {
+        border-bottom: 1px solid #dee2e6;
+        padding-bottom: 1rem;
+        margin-bottom: 2rem;
+      }
+      @media (max-width: 768px) {
+        .filter-buttons {
+          margin-top: 1rem;
+        }
       }
     </style>
   </head>
   <body>
     <div class="container">
-      <h1 class="mt-5">Pregled računa</h1>
-      <div class="mt-5">
-        <form id="filter-form" class="row align-items-center mb-3">
-          <div class="col-auto">
-            <select class="form-control" id="month-select" name="month">
-              <option value="1">Siječanj</option>
-              <option value="2">Veljača</option>
-              <option value="3">Ožujak</option>
-              <option value="4">Travanj</option>
-              <option value="5">Svibanj</option>
-              <option value="6">Lipanj</option>
-              <option value="7">Srpanj</option>
-              <option value="8">Kolovoz</option>
-              <option value="9">Rujan</option>
-              <option value="10">Listopad</option>
-              <option value="11">Studeni</option>
-              <option value="12">Prosinac</option>
-            </select>
+      <div class="page-header mt-4">
+        <div class="row align-items-center">
+          <div class="col-md-6">
+            <h1>Pregled računa</h1>
           </div>
-          <div class="col-auto">
-            <select class="form-control" id="year-select" name="year">
-              <option value="2023">2023</option>
-              <option value="2024">2024</option>
-              <option value="2025">2025</option>
-              <option value="2026">2026</option>
-            </select>
-          </div>
-          <div class="col-auto">
-            <button type="submit" class="btn btn-primary">Filter</button>
-          </div>
-          <div class="col text-right">
-            <button class="btn btn-success mr-2" id="export-csv">
-              Knjiga prometa (CSV)
+          <div class="col-md-6 text-md-right">
+            <button class="btn btn-outline-secondary" id="back-button">
+              <i class="fa fa-arrow-left"></i> Natrag na početnu
             </button>
-            <button class="btn btn-secondary" id="back-button">Natrag</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feedback container -->
+      <div
+        id="feedback-container"
+        class="alert"
+        style="display: none"
+        role="alert"
+      ></div>
+
+      <div class="filter-section">
+        <form id="filter-form">
+          <div class="row align-items-end">
+            <div class="col-md-3 mb-2 mb-md-0">
+              <label for="month-select">Mjesec:</label>
+              <select class="form-control" id="month-select" name="month">
+                <option value="all">Svi mjeseci</option>
+                <option value="1">Siječanj</option>
+                <option value="2">Veljača</option>
+                <option value="3">Ožujak</option>
+                <option value="4">Travanj</option>
+                <option value="5">Svibanj</option>
+                <option value="6">Lipanj</option>
+                <option value="7">Srpanj</option>
+                <option value="8">Kolovoz</option>
+                <option value="9">Rujan</option>
+                <option value="10">Listopad</option>
+                <option value="11">Studeni</option>
+                <option value="12">Prosinac</option>
+              </select>
+            </div>
+
+            <div class="col-md-2 mb-2 mb-md-0">
+              <label for="year-select">Godina:</label>
+              <select class="form-control" id="year-select" name="year">
+                <!-- Will be populated by JavaScript -->
+              </select>
+            </div>
+
+            <div class="col-md-4 mb-2 mb-md-0">
+              <label for="search-input">Pretraživanje:</label>
+              <input
+                type="text"
+                class="form-control"
+                id="search-input"
+                placeholder="Broj računa ili kupac..."
+                aria-label="Pretražite račune"
+              />
+            </div>
+
+            <div class="col-md-3 text-md-right filter-buttons">
+              <button type="submit" class="btn btn-primary">
+                <i class="fa fa-filter"></i> Filtriraj
+              </button>
+              <button
+                type="button"
+                class="btn btn-success ml-2"
+                id="export-csv"
+              >
+                <i class="fa fa-file-excel"></i> Knjiga prometa
+              </button>
+            </div>
           </div>
         </form>
       </div>
-      <div id="invoices-list" class="mt-3 p-3 border rounded bg-light"></div>
+
+      <!-- Statistics summary -->
+      <div class="row mb-4">
+        <div class="col-sm-4">
+          <div class="card bg-light">
+            <div class="card-body text-center">
+              <h5 class="card-title">Ukupno računa</h5>
+              <p class="card-text" id="total-invoices">0</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-4">
+          <div class="card bg-light">
+            <div class="card-body text-center">
+              <h5 class="card-title">Ukupan prihod</h5>
+              <p class="card-text" id="total-revenue">0,00 €</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-4">
+          <div class="card bg-light">
+            <div class="card-body text-center">
+              <h5 class="card-title">Prosječan iznos</h5>
+              <p class="card-text" id="average-amount">0,00 €</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header bg-light">
+          <h5 class="mb-0">Lista računa</h5>
+        </div>
+        <div class="card-body p-0">
+          <div id="invoices-list" class="p-3"></div>
+        </div>
+      </div>
     </div>
+
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script src="viewInvoices.js"></script>

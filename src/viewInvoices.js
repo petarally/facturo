@@ -1,7 +1,7 @@
-const fs = require("fs").promises;
-const path = require("path");
+const { ipcRenderer } = require("electron");
 const ExcelJS = require("exceljs");
 
+// Helper function to format dates consistently
 const formatDate = (dateString) => {
   const date = new Date(dateString);
   const day = String(date.getDate()).padStart(2, "0");
@@ -10,49 +10,126 @@ const formatDate = (dateString) => {
   return `${day}.${month}.${year}`;
 };
 
+// Helper for showing feedback messages
+function showFeedback(message, isError = false, duration = 3000) {
+  const feedbackEl = document.getElementById("feedback-container");
+  if (!feedbackEl) return;
+
+  feedbackEl.textContent = message;
+  feedbackEl.className = `alert ${isError ? "alert-danger" : "alert-success"}`;
+  feedbackEl.style.display = "block";
+
+  if (!isError && duration > 0) {
+    setTimeout(() => {
+      feedbackEl.style.display = "none";
+    }, duration);
+  }
+}
+
+// Function to update statistics based on filtered invoices
+function updateStatistics(filteredInvoices) {
+  // Get references to statistics elements
+  const totalInvoicesEl = document.getElementById("total-invoices");
+  const totalRevenueEl = document.getElementById("total-revenue");
+  const averageAmountEl = document.getElementById("average-amount");
+
+  // Calculate statistics
+  const totalInvoices = filteredInvoices.length;
+
+  // Calculate total revenue (sum of all invoice amounts)
+  const totalRevenue = filteredInvoices.reduce((sum, invoice) => {
+    return sum + parseFloat(invoice.discountedAmount || 0);
+  }, 0);
+
+  // Calculate average amount (if there are invoices)
+  const averageAmount = totalInvoices > 0 ? totalRevenue / totalInvoices : 0;
+
+  // Update the UI with formatted values
+  totalInvoicesEl.textContent = totalInvoices;
+  totalRevenueEl.textContent = `${totalRevenue.toFixed(2)} €`;
+  averageAmountEl.textContent = `${averageAmount.toFixed(2)} €`;
+}
+
 window.addEventListener("DOMContentLoaded", async () => {
-  const invoicesDataPath = path.join(__dirname, "data", "invoices.json");
-  const companyDataPath = path.join(__dirname, "data", "companyData.json");
+  const invoicesListDiv = document.getElementById("invoices-list");
+  const loadingIndicator = document.createElement("div");
+  loadingIndicator.className = "alert alert-info";
+  loadingIndicator.textContent = "Učitavanje podataka...";
+  invoicesListDiv.appendChild(loadingIndicator);
 
   let invoicesData, companyData;
 
   try {
+    // Get data through IPC instead of direct file access
     [invoicesData, companyData] = await Promise.all([
-      fs.readFile(invoicesDataPath, "utf-8").then(JSON.parse),
-      fs.readFile(companyDataPath, "utf-8").then(JSON.parse),
+      ipcRenderer.invoke("get-data", "invoices"),
+      ipcRenderer.invoke("get-data", "companyData"),
     ]);
 
-    const invoicesListDiv = document.getElementById("invoices-list");
+    // Remove loading indicator
+    loadingIndicator.remove();
 
     const renderInvoices = (filteredInvoices) => {
-      invoicesListDiv.innerHTML = "";
+      invoicesListDiv.innerHTML =
+        filteredInvoices.length === 0
+          ? "<div class='alert alert-info'>Nema računa za odabrani period</div>"
+          : "";
+
       filteredInvoices.forEach((invoice, index) => {
         const invoiceDiv = document.createElement("div");
-        invoiceDiv.className = "invoice-item";
+        invoiceDiv.className = "invoice-item card mb-3";
         invoiceDiv.innerHTML = `
-          <h5><a href="invoiceTemplate.html?invoiceId=${index}">Račun ${
-          index + 1
-        }</a></h5>
-          <p>Ime kupca: ${invoice.customerName}</p>
-          <p>Datum: ${formatDate(invoice.date)}</p>
-          <p>Iznos: ${invoice.discountedAmount} €</p>
-          <hr />
+          <div class="card-body">
+            <h5 class="card-title">
+              <a href="template/invoiceTemplate.html?invoiceId=${index}">Račun ${
+          invoice.number
+        }</a>
+            </h5>
+            <p class="card-text">Ime kupca: ${invoice.customerName}</p>
+            <p class="card-text">Datum: ${formatDate(invoice.date)}</p>
+            <p class="card-text">Iznos: ${invoice.discountedAmount} €</p>
+            <button class="btn btn-sm btn-outline-primary view-invoice" data-index="${index}">
+              Prikaži račun
+            </button>
+          </div>
         `;
         invoicesListDiv.appendChild(invoiceDiv);
+
+        // Add click handler for view button
+        invoiceDiv
+          .querySelector(".view-invoice")
+          .addEventListener("click", () => {
+            window.location.href = `template/invoiceTemplate.html?invoiceId=${index}`;
+          });
       });
+
+      // Update statistics after rendering invoices
+      updateStatistics(filteredInvoices);
     };
 
     const filterInvoices = (month, year) => {
       const filteredInvoices = invoicesData.filter((invoice) => {
         const invoiceDate = new Date(invoice.date);
         return (
-          invoiceDate.getMonth() + 1 === parseInt(month) &&
+          (month === "all" || invoiceDate.getMonth() + 1 === parseInt(month)) &&
           invoiceDate.getFullYear() === parseInt(year)
         );
       });
       renderInvoices(filteredInvoices);
     };
 
+    // Populate year select
+    const yearSelect = document.getElementById("year-select");
+    const currentYear = new Date().getFullYear();
+    for (let year = currentYear - 2; year <= currentYear + 1; year++) {
+      const option = document.createElement("option");
+      option.value = year;
+      option.textContent = year;
+      if (year === currentYear) option.selected = true;
+      yearSelect.appendChild(option);
+    }
+
+    // Add filter form handler
     document
       .getElementById("filter-form")
       .addEventListener("submit", (event) => {
@@ -62,55 +139,113 @@ window.addEventListener("DOMContentLoaded", async () => {
         filterInvoices(month, year);
       });
 
+    // Add search functionality
+    document
+      .getElementById("search-input")
+      .addEventListener("input", (event) => {
+        const searchTerm = event.target.value.toLowerCase().trim();
+        const month = document.getElementById("month-select").value;
+        const year = document.getElementById("year-select").value;
+
+        if (!searchTerm) {
+          // If search is cleared, just use the month/year filter
+          filterInvoices(month, year);
+          return;
+        }
+
+        // Filter by both search term and month/year
+        const filteredInvoices = invoicesData.filter((invoice) => {
+          const invoiceDate = new Date(invoice.date);
+          const matchesDate =
+            (month === "all" ||
+              invoiceDate.getMonth() + 1 === parseInt(month)) &&
+            invoiceDate.getFullYear() === parseInt(year);
+
+          const matchesSearch =
+            invoice.number.toLowerCase().includes(searchTerm) ||
+            invoice.customerName.toLowerCase().includes(searchTerm);
+
+          return matchesDate && matchesSearch;
+        });
+
+        renderInvoices(filteredInvoices);
+      });
+
+    // Export to Excel handler
     document
       .getElementById("export-csv")
       .addEventListener("click", async function () {
-        console.log("Export CSV clicked");
-        const selectedMonth = document.getElementById("month-select").value;
-        const selectedYear = document.getElementById("year-select").value;
+        try {
+          showFeedback("Priprema izvoza...");
+          const selectedMonth = document.getElementById("month-select").value;
+          const selectedYear = document.getElementById("year-select").value;
 
-        const downloadUrl = await readExcelFile(
-          path.join(__dirname, "data", "knjiga-prometa.xlsx"),
-          companyData,
-          invoicesData, // Pass invoicesData as an argument
-          selectedMonth,
-          selectedYear
-        );
+          // Get template Excel file through IPC
+          const excelTemplate = await ipcRenderer.invoke("get-excel-template");
 
-        // Trigger download
-        const link = document.createElement("a");
-        link.href = downloadUrl;
-        link.download = "knjiga-prometa-new.xlsx";
-        link.style.display = "none";
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(downloadUrl);
+          if (!excelTemplate) {
+            throw new Error("Predložak za izvoz nije pronađen");
+          }
+
+          // Generate Excel from template
+          const downloadUrl = await generateExcelReport(
+            excelTemplate,
+            companyData,
+            invoicesData,
+            selectedMonth,
+            selectedYear
+          );
+
+          // Trigger download
+          const link = document.createElement("a");
+          link.href = downloadUrl;
+          link.download = `knjiga-prometa-${selectedMonth}-${selectedYear}.xlsx`;
+          link.style.display = "none";
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(downloadUrl);
+
+          showFeedback("Izvoz uspješno završen!");
+        } catch (error) {
+          console.error("Error exporting data:", error);
+          showFeedback("Greška prilikom izvoza: " + error.message, true);
+        }
       });
 
+    // Back button handler
     document.getElementById("back-button").addEventListener("click", () => {
       window.location.href = "hello.html";
     });
 
-    // Initial render
-    filterInvoices(new Date().getMonth() + 1, new Date().getFullYear());
+    // Initial render - current month and year
+    const currentDate = new Date();
+    document.getElementById("month-select").value = (
+      currentDate.getMonth() + 1
+    ).toString();
+    filterInvoices(currentDate.getMonth() + 1, currentDate.getFullYear());
   } catch (error) {
     console.error("Error loading data:", error);
+    loadingIndicator.remove();
+    showFeedback("Greška pri učitavanju podataka: " + error.message, true);
   }
 });
 
-async function readExcelFile(
-  filePath,
+// Generate Excel report from template and data
+async function generateExcelReport(
+  templateBuffer,
   companyData,
-  invoicesData, // Add invoicesData as a parameter
+  invoicesData,
   selectedMonth,
   selectedYear
 ) {
+  // Create workbook from template buffer
   const workbook = new ExcelJS.Workbook();
-  await workbook.xlsx.readFile(filePath);
+  await workbook.xlsx.load(templateBuffer);
 
   const worksheet = workbook.getWorksheet(1);
-  // opis u knjizi prometa
+
+  // Fill company data
   worksheet.getCell("D4").value = companyData.opis;
   worksheet.getCell("E4").value = companyData.opis;
   worksheet.getCell("F4").value = companyData.kod_djelatnosti;
@@ -129,18 +264,49 @@ async function readExcelFile(
   worksheet.getCell("F9").value = companyData.opis;
   worksheet.getCell("G9").value = companyData.opis;
 
+  // Set title with month/year
+  const monthNames = [
+    "Siječanj",
+    "Veljača",
+    "Ožujak",
+    "Travanj",
+    "Svibanj",
+    "Lipanj",
+    "Srpanj",
+    "Kolovoz",
+    "Rujan",
+    "Listopad",
+    "Studeni",
+    "Prosinac",
+  ];
+
+  // Set report period (if month is "all", show whole year)
+  const periodText =
+    selectedMonth === "all"
+      ? `KNJIGA PROMETA ZA ${selectedYear}.`
+      : `KNJIGA PROMETA ZA ${
+          monthNames[parseInt(selectedMonth) - 1]
+        } ${selectedYear}.`;
+
+  worksheet.getCell("A1").value = periodText;
+
   // Filter and sort invoices
   const filteredInvoices = invoicesData.filter((invoice) => {
     const invoiceDate = new Date(invoice.date);
     return (
-      invoiceDate.getMonth() + 1 === parseInt(selectedMonth) &&
+      (selectedMonth === "all" ||
+        invoiceDate.getMonth() + 1 === parseInt(selectedMonth)) &&
       invoiceDate.getFullYear() === parseInt(selectedYear)
     );
   });
 
   // Sort by date
   filteredInvoices.sort((a, b) => new Date(a.date) - new Date(b.date));
-  console.log("Filtered and sorted invoices:", filteredInvoices);
+
+  // Clear existing data rows (assuming data starts at row 13)
+  for (let i = 13; i < worksheet.rowCount; i++) {
+    worksheet.spliceRows(13, 1);
+  }
 
   // Write filtered and sorted invoices to the worksheet
   let sum = 0;
@@ -168,26 +334,30 @@ async function readExcelFile(
     });
   });
 
-  // Find the last row with "ZBROJ" and update its values
-  const totalRow = worksheet.findRow(worksheet.rowCount);
-  if (totalRow) {
-    totalRow.getCell(1).value = "ZBROJ";
-    totalRow.getCell(6).value = sum;
-    totalRow.getCell(7).value = sum;
-    totalRow.font = { bold: true };
+  // Add total row
+  const totalRowIndex = 13 + filteredInvoices.length;
+  const totalRow = worksheet.insertRow(totalRowIndex, [
+    "ZBROJ",
+    null,
+    null,
+    null,
+    null,
+    sum,
+    sum,
+  ]);
 
-    // Add borders to the total row cells
-    totalRow.eachCell((cell) => {
-      cell.border = {
-        top: { style: "thin" },
-        left: { style: "thin" },
-        bottom: { style: "thin" },
-        right: { style: "thin" },
-      };
-    });
-  }
+  // Format total row
+  totalRow.eachCell((cell) => {
+    cell.font = { bold: true };
+    cell.border = {
+      top: { style: "thin" },
+      left: { style: "thin" },
+      bottom: { style: "thin" },
+      right: { style: "thin" },
+    };
+  });
 
-  // Create a Blob from the workbook and trigger download
+  // Create a Blob from the workbook
   const buffer = await workbook.xlsx.writeBuffer();
   const blob = new Blob([buffer], {
     type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

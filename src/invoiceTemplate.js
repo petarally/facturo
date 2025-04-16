@@ -1,124 +1,185 @@
-const fs = require("fs");
-const path = require("path");
 const { ipcRenderer } = require("electron");
 const { jsPDF } = require("jspdf");
 
-// Load custom font
-const fontPath = path.join(__dirname, "fonts", "calibri.ttf");
-const fontData = fs.readFileSync(fontPath, "base64");
+// Feedback function to replace alerts
+function showFeedback(message, isError = false) {
+  const feedbackEl =
+    document.getElementById("feedback-container") ||
+    (() => {
+      const el = document.createElement("div");
+      el.id = "feedback-container";
+      el.className = "alert";
+      document.body.insertBefore(el, document.body.firstChild);
+      return el;
+    })();
 
-window.addEventListener("DOMContentLoaded", () => {
-  const invoicesPath = path.join(__dirname, "data", "invoices.json");
-  const companyPath = path.join(__dirname, "data", "companyData.json");
+  feedbackEl.textContent = message;
+  feedbackEl.className = `alert ${isError ? "alert-danger" : "alert-success"}`;
+  feedbackEl.style.display = "block";
 
-  const urlParams = new URLSearchParams(window.location.search);
-  const invoiceId = urlParams.get("invoiceId");
+  if (!isError) {
+    setTimeout(() => {
+      feedbackEl.style.display = "none";
+    }, 3000);
+  }
+}
 
-  const invoices = JSON.parse(fs.readFileSync(invoicesPath));
-  const company = JSON.parse(fs.readFileSync(companyPath));
-  const invoice = invoices[invoiceId];
+window.addEventListener("DOMContentLoaded", async () => {
+  try {
+    // Get URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const invoiceId = urlParams.get("invoiceId");
 
-  // Populate data
-  document.getElementById("company-info").innerHTML = `
-    <p>${company.naziv}, ${company.opis},</p>
-    <p>vl. ${company.vlasnik}, ${company.grad}, ${company.adresa}</p>
-    <p>OIB: ${company.oib}</p>
-    <p>IBAN: ${company.iban}</p>
-  `;
-  document.getElementById("vlasnik").textContent =
-    company.vlasnik.toUpperCase();
-  document.getElementById("customer-name").textContent = invoice.customerName;
+    if (!invoiceId) {
+      showFeedback("ID računa nije pronađen u URL-u", true);
+      return;
+    }
 
-  document.querySelectorAll(".invoice-date").forEach((el) => {
-    el.textContent = new Date(invoice.date).toLocaleDateString("hr-HR");
-  });
+    // Loading indicator
+    const loadingEl = document.createElement("div");
+    loadingEl.className = "alert alert-info";
+    loadingEl.textContent = "Učitavanje računa...";
+    document.body.insertBefore(loadingEl, document.body.firstChild);
 
-  const itemsContainer = document.getElementById("invoice-items");
-  invoice.services.forEach((item, i) => {
-    const row = `
-      <tr>
+    // Get data through IPC
+    const [invoices, company, fontData] = await Promise.all([
+      ipcRenderer.invoke("get-data", "invoices"),
+      ipcRenderer.invoke("get-data", "companyData"),
+      ipcRenderer.invoke("get-font-data", "calibri"),
+    ]);
+
+    // Hide loading indicator
+    loadingEl.style.display = "none";
+
+    // Check if invoice exists
+    if (!invoices[invoiceId]) {
+      showFeedback("Račun nije pronađen", true);
+      return;
+    }
+
+    const invoice = invoices[invoiceId];
+
+    // Populate data
+    document.getElementById("company-info").innerHTML = `
+      <p>${company.naziv}, ${company.opis},</p>
+      <p>vl. ${company.vlasnik}, ${company.grad}, ${company.adresa}</p>
+      <p>OIB: ${company.oib}</p>
+      <p>IBAN: ${company.iban}</p>
+    `;
+    document.getElementById("vlasnik").textContent =
+      company.vlasnik.toUpperCase();
+    document.getElementById("customer-name").textContent = invoice.customerName;
+    document.getElementById("invoice-number").textContent = invoice.number;
+
+    document.querySelectorAll(".invoice-date").forEach((el) => {
+      el.textContent = new Date(invoice.date).toLocaleDateString("hr-HR");
+    });
+
+    const itemsContainer = document.getElementById("invoice-items");
+    itemsContainer.innerHTML = ""; // Clear any existing items
+
+    invoice.services.forEach((item, i) => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
         <td>${i + 1}</td>
         <td>${item.name}</td>
         <td>kom</td>
         <td class="text-right">1</td>
         <td class="text-right">${item.price} €</td>
         <td class="text-right">${item.price} €</td>
-      </tr>
-    `;
-    itemsContainer.insertAdjacentHTML("beforeend", row);
-  });
+      `;
+      itemsContainer.appendChild(row);
+    });
 
-  if (invoice.discount > 0) {
-    document.getElementById("discount-container").style.display = "block";
-    document.getElementById("discount").textContent = `${invoice.discount}%`;
-  } else {
-    document.getElementById("discount-container").style.display = "none";
-  }
+    // Handle discount display
+    if (invoice.discount > 0) {
+      document.getElementById("discount-container").style.display = "block";
+      document.getElementById("discount").textContent = `${invoice.discount}%`;
+    } else {
+      document.getElementById("discount-container").style.display = "none";
+    }
 
-  document.getElementById(
-    "total-without-tax"
-  ).textContent = `${invoice.totalAmount} €`;
-  document.getElementById("discount").textContent = invoice.discount
-    ? `${invoice.discount}%`
-    : "N/A";
-  document.getElementById(
-    "total-amount"
-  ).textContent = `${invoice.discountedAmount} €`;
+    document.getElementById(
+      "total-without-tax"
+    ).textContent = `${invoice.totalAmount} €`;
+    document.getElementById(
+      "total-amount"
+    ).textContent = `${invoice.discountedAmount} €`;
 
-  // Export PDF
-  document
-    .getElementById("export-pdf-button")
-    .addEventListener("click", async () => {
-      const pdf = new jsPDF({ unit: "mm", format: "a4" });
-      pdf.addFileToVFS("calibri.ttf", fontData);
-      pdf.addFont("calibri.ttf", "Calibri", "normal", "Identity-H");
-      pdf.setFont("Calibri");
+    // Export PDF
+    document
+      .getElementById("export-pdf-button")
+      .addEventListener("click", async () => {
+        try {
+          // Show loading message
+          showFeedback("Generiranje PDF-a...");
 
-      try {
-        // Ask user where to save the PDF
-        const { filePath, canceled } = await ipcRenderer.invoke(
-          "show-save-dialog",
-          {
-            title: "Save PDF",
-            defaultPath: `invoice-${invoice.number}.pdf`,
-            filters: [{ name: "PDF Files", extensions: ["pdf"] }],
+          // Ask user where to save the PDF
+          const result = await ipcRenderer.invoke("show-save-dialog", {
+            title: "Spremi PDF",
+            defaultPath: `racun-${invoice.number.replace(/\//g, "-")}.pdf`,
+            filters: [{ name: "PDF datoteke", extensions: ["pdf"] }],
+          });
+
+          if (result.canceled) {
+            return;
           }
-        );
 
-        if (canceled) {
-          console.log("User canceled the save dialog.");
-          return;
-        }
+          const filePath = result.filePath;
 
-        if (filePath) {
-          // Apply scaling to fit content within A4 size
+          // Create PDF
+          const pdf = new jsPDF({ unit: "mm", format: "a4" });
+
+          // Add font
+          if (fontData) {
+            pdf.addFileToVFS("calibri.ttf", fontData);
+            pdf.addFont("calibri.ttf", "Calibri", "normal", "Identity-H");
+            pdf.setFont("Calibri");
+          }
+
+          // Get invoice content and prepare for PDF
           const invoiceContent = document.getElementById("invoice-content");
           invoiceContent.style.transform = "scale(0.85)";
           invoiceContent.style.transformOrigin = "top left";
           invoiceContent.style.margin = "0 auto";
 
-          // Use the html method to convert HTML content to PDF
+          // Generate PDF
           await pdf.html(invoiceContent, {
-            callback: (doc) => {
+            callback: async (doc) => {
               const pdfData = doc.output("arraybuffer");
-              fs.writeFileSync(filePath, Buffer.from(pdfData));
-              alert(`PDF saved successfully at ${filePath}`);
-            },
-            x: 10, // Margin on left
-            y: 10, // Margin on top
-            width: 200, // Set the width to fit the content within A4 size
-            windowWidth: invoiceContent.scrollWidth, // Use the full width of the content
-          });
-        }
-      } catch (error) {
-        console.error("Error generating PDF:", error);
-        alert("Failed to save PDF. Please check console for more details.");
-      }
-    });
 
-  // Navigate back
-  document.getElementById("back-button").addEventListener("click", () => {
-    console.log("Back button clicked");
-    window.location.href = "hello.html";
-  });
+              // Save PDF via IPC
+              const saveResult = await ipcRenderer.invoke("save-pdf", {
+                filePath,
+                data: Array.from(new Uint8Array(pdfData)),
+              });
+
+              if (saveResult.success) {
+                showFeedback(`PDF uspješno spremljen: ${filePath}`);
+              } else {
+                throw new Error(saveResult.error);
+              }
+            },
+            x: 10,
+            y: 10,
+            width: 200,
+            windowWidth: invoiceContent.scrollWidth,
+          });
+        } catch (error) {
+          console.error("Error generating PDF:", error);
+          showFeedback(`Greška pri generiranju PDF-a: ${error.message}`, true);
+        }
+      });
+
+    // Navigate back
+    document.getElementById("back-button").addEventListener("click", () => {
+      window.location.href = "../viewInvoices.html";
+    });
+  } catch (error) {
+    console.error("Error loading invoice template:", error);
+    showFeedback(
+      `Greška pri učitavanju predloška računa: ${error.message}`,
+      true
+    );
+  }
 });

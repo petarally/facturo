@@ -4,7 +4,10 @@
   "description": "Aplikacija za vođenje knjigu prometa paušalnih obrtnika.",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder",
+    "publish": "electron-builder -p always"
   },
   "repository": {
     "type": "git",
@@ -23,8 +26,41 @@
     "url": "https://github.com/petarally/facturo/issues"
   },
   "homepage": "https://github.com/petarally/facturo#readme",
+  "build": {
+    "asar": true,
+    "compression": "maximum",
+    "appId": "com.petarally.facturo",
+    "productName": "Facturo",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "src/**/*",
+      "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
+      "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
+      "!**/node_modules/*.d.ts",
+      "!**/node_modules/.bin",
+      "!**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "src/assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  },
   "devDependencies": {
-    "electron": "^33.2.1"
+    "electron": "^33.2.1",
+    "electron-builder": "^26.0.12"
   },
   "dependencies": {
     "@electron/remote": "^2.1.2",

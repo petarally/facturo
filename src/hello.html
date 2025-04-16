@@ -1,47 +1,179 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hr">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Podaci</title>
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' https://code.jquery.com https://cdn.jsdelivr.net https://stackpath.bootstrapcdn.com; style-src 'self' 'unsafe-inline' https://stackpath.bootstrapcdn.com; font-src 'self' data:;"
+    />
+    <title>Facturo - Kontrolna ploča</title>
     <link rel="stylesheet" href="style.css" />
     <link
       href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
       rel="stylesheet"
     />
     <style>
-      #company-data p {
-        margin: 0;
-        padding: 0;
+      .card {
+        transition: transform 0.2s;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+      .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      }
+      .dashboard-icon {
+        font-size: 2rem;
+        margin-bottom: 15px;
+        color: #007bff;
+      }
+      .action-card {
+        text-align: center;
+        padding: 20px;
+        height: 100%;
+      }
+      .company-card {
+        background-color: #f8f9fa;
+      }
+      .btn-dashboard {
+        min-width: 150px;
+      }
+      .header-section {
+        background-color: #f8f9fa;
+        padding: 20px 0;
+        margin-bottom: 30px;
+        border-bottom: 1px solid #e9ecef;
+      }
+      .footer-section {
+        margin-top: 40px;
+        padding-top: 20px;
+        border-top: 1px solid #e9ecef;
+        text-align: center;
+        font-size: 0.9rem;
       }
     </style>
   </head>
   <body>
-    <div class="container">
-      <h1 class="mt-5">Podaci o obrtu</h1>
-      <div id="company-data" class="mt-3 p-3 border rounded bg-light"></div>
+    <div class="header-section">
+      <div class="container">
+        <div class="row align-items-center">
+          <div class="col-md-8">
+            <h1>Facturo</h1>
+            <p class="text-muted">
+              Aplikacija za izradu računa i vođenje knjige prometa
+            </p>
+          </div>
+          <div class="col-md-4 text-right">
+            <button id="edit-company-button" class="btn btn-outline-secondary">
+              <i class="fa fa-cog"></i> Uredi podatke o obrtu
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
 
-      <div class="mt-5">
-        <button type="button" class="btn btn-primary" id="add-service-button">
-          Dodaj uslugu
-        </button>
-        <button
-          type="button"
-          class="btn btn-secondary"
-          id="view-services-button"
-        >
-          Prikaži usluge
-        </button>
-        <button
-          type="button"
-          class="btn btn-success"
-          id="create-invoice-button"
-        >
-          Kreiraj račun
-        </button>
-        <button type="button" class="btn btn-info" id="view-invoices-button">
-          Prikaži sve račune
-        </button>
+    <div class="container">
+      <div class="row mb-4">
+        <div class="col-12">
+          <div class="card company-card">
+            <div class="card-body">
+              <h5 class="card-title">Podaci o obrtu</h5>
+              <div id="company-data" class="mt-3"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="mb-4">Brze akcije</h2>
+      <div class="row">
+        <div class="col-md-3 col-sm-6">
+          <div class="card">
+            <div class="card-body action-card">
+              <div class="dashboard-icon">📝</div>
+              <h5 class="card-title">Usluge</h5>
+              <p class="card-text">Dodaj ili uredi usluge koje nudiš</p>
+              <button
+                type="button"
+                class="btn btn-primary btn-dashboard"
+                id="add-service-button"
+              >
+                Dodaj uslugu
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline-secondary btn-dashboard mt-2"
+                id="view-services-button"
+              >
+                Prikaži usluge
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-3 col-sm-6">
+          <div class="card">
+            <div class="card-body action-card">
+              <div class="dashboard-icon">💰</div>
+              <h5 class="card-title">Računi</h5>
+              <p class="card-text">Izradi nove račune za klijente</p>
+              <button
+                type="button"
+                class="btn btn-success btn-dashboard"
+                id="create-invoice-button"
+              >
+                Kreiraj račun
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline-secondary btn-dashboard mt-2"
+                id="view-invoices-button"
+              >
+                Prikaži račune
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-3 col-sm-6">
+          <div class="card">
+            <div class="card-body action-card">
+              <div class="dashboard-icon">👥</div>
+              <h5 class="card-title">Klijenti</h5>
+              <p class="card-text">Pregledaj i upravljaj klijentima</p>
+              <button
+                type="button"
+                class="btn btn-info btn-dashboard"
+                id="customers-button"
+              >
+                Klijenti
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-3 col-sm-6">
+          <div class="card">
+            <div class="card-body action-card">
+              <div class="dashboard-icon">📊</div>
+              <h5 class="card-title">Izvještaji</h5>
+              <p class="card-text">Knjiga prometa i statistika</p>
+              <button
+                type="button"
+                class="btn btn-warning btn-dashboard"
+                id="reports-button"
+              >
+                Izvještaji
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-section">
+      <div class="container">
+        <p>© 2025 Facturo - Aplikacija za jednostavno vođenje poslovanja</p>
       </div>
     </div>
 

@@ -1,35 +1,153 @@
-const fs = require("fs");
-const path = require("path");
+const { ipcRenderer } = require("electron");
 
-window.addEventListener("DOMContentLoaded", () => {
-  const servicesDataPath = path.join(__dirname, "data", "services.json");
-  const servicesData = JSON.parse(fs.readFileSync(servicesDataPath));
+// Helper for showing feedback messages
+function showFeedback(message, isError = false, duration = 3000) {
+  const feedbackEl = document.getElementById("feedback-container");
+  if (!feedbackEl) return;
 
+  feedbackEl.textContent = message;
+  feedbackEl.className = `alert ${isError ? "alert-danger" : "alert-success"}`;
+  feedbackEl.style.display = "block";
+
+  if (!isError && duration > 0) {
+    setTimeout(() => {
+      feedbackEl.style.display = "none";
+    }, duration);
+  }
+}
+
+window.addEventListener("DOMContentLoaded", async () => {
   const serviceList = document.getElementById("service-list");
 
-  servicesData.forEach((service, index) => {
-    const listItem = document.createElement("li");
-    listItem.className =
-      "list-group-item d-flex justify-content-between align-items-center";
-    listItem.innerHTML = `
-      <span>${service.name} - ${service.price} €</span>
-      <div>
-        <button class="btn btn-sm btn-danger delete-service" data-index="${index}">Izbriši</button>
+  // Show loading indicator
+  serviceList.innerHTML = `
+    <div class="text-center p-3">
+      <div class="spinner-border text-primary" role="status">
+        <span class="sr-only">Učitavanje...</span>
       </div>
-    `;
-    serviceList.appendChild(listItem);
-  });
+      <p class="mt-2">Učitavanje usluga...</p>
+    </div>
+  `;
 
-  document.querySelectorAll(".delete-service").forEach((button) => {
-    button.addEventListener("click", (event) => {
-      const index = event.target.getAttribute("data-index");
-      servicesData.splice(index, 1);
-      fs.writeFileSync(servicesDataPath, JSON.stringify(servicesData, null, 2));
-      window.location.reload();
+  try {
+    // Get services data through IPC
+    const servicesData = await ipcRenderer.invoke("get-data", "services");
+
+    // Clear loading indicator
+    serviceList.innerHTML = "";
+
+    if (servicesData.length === 0) {
+      serviceList.innerHTML = `
+        <li class="list-group-item text-center text-muted">
+          Nema dostupnih usluga. Dodajte novu uslugu.
+        </li>
+      `;
+      return;
+    }
+
+    // Populate services list
+    servicesData.forEach((service, index) => {
+      const listItem = document.createElement("li");
+      listItem.className =
+        "list-group-item d-flex justify-content-between align-items-center";
+      listItem.innerHTML = `
+        <div>
+          <strong>${service.name}</strong>
+          <span class="badge badge-primary ml-2">${service.price} €</span>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-sm btn-outline-secondary edit-service" data-index="${index}">
+            <i class="fa fa-pencil"></i> Uredi
+          </button>
+          <button class="btn btn-sm btn-danger delete-service" data-index="${index}">
+            <i class="fa fa-trash"></i> Izbriši
+          </button>
+        </div>
+      `;
+      serviceList.appendChild(listItem);
     });
-  });
 
+    // Setup delete buttons
+    document.querySelectorAll(".delete-service").forEach((button) => {
+      button.addEventListener("click", async (event) => {
+        const index = parseInt(event.target.getAttribute("data-index"));
+        const serviceName = servicesData[index].name;
+
+        // Show confirmation dialog
+        const confirmDelete = confirm(
+          `Jeste li sigurni da želite izbrisati uslugu "${serviceName}"?`
+        );
+
+        if (confirmDelete) {
+          try {
+            // Remove from array
+            servicesData.splice(index, 1);
+
+            // Update via IPC
+            const result = await ipcRenderer.invoke("save-data", {
+              type: "services",
+              data: servicesData,
+            });
+
+            if (result.success) {
+              // Remove from DOM without reload
+              const listItem = button.closest("li");
+              listItem.style.backgroundColor = "#ffdddd";
+              listItem.style.transition = "opacity 0.5s ease";
+
+              setTimeout(() => {
+                listItem.style.opacity = "0";
+                setTimeout(() => {
+                  listItem.remove();
+
+                  // Show empty message if no services left
+                  if (serviceList.children.length === 0) {
+                    serviceList.innerHTML = `
+                      <li class="list-group-item text-center text-muted">
+                        Nema dostupnih usluga. Dodajte novu uslugu.
+                      </li>
+                    `;
+                  }
+                }, 500);
+              }, 300);
+
+              showFeedback(`Usluga "${serviceName}" je uspješno izbrisana.`);
+            } else {
+              throw new Error(result.error || "Greška pri brisanju usluge");
+            }
+          } catch (error) {
+            console.error("Error deleting service:", error);
+            showFeedback(`Greška pri brisanju usluge: ${error.message}`, true);
+          }
+        }
+      });
+    });
+
+    // Setup edit buttons
+    document.querySelectorAll(".edit-service").forEach((button) => {
+      button.addEventListener("click", (event) => {
+        const index = event.target.getAttribute("data-index");
+        window.location.href = `addService.html?edit=${index}`;
+      });
+    });
+  } catch (error) {
+    console.error("Error loading services:", error);
+    serviceList.innerHTML = `
+      <li class="list-group-item text-danger">
+        Greška pri učitavanju usluga: ${error.message}
+      </li>
+    `;
+  }
+
+  // Back button handler
   document.getElementById("back-button").addEventListener("click", () => {
     window.location.href = "hello.html";
   });
+
+  // Add service button handler
+  document
+    .getElementById("add-service-button")
+    .addEventListener("click", () => {
+      window.location.href = "addService.html";
+    });
 });
