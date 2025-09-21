@@ -1,5 +1,3 @@
-const { ipcRenderer } = require("electron");
-
 // Helper for showing feedback messages
 function showFeedback(message, isError = false, duration = 3000) {
   const feedbackEl = document.getElementById("feedback-container");
@@ -34,10 +32,10 @@ window.addEventListener("DOMContentLoaded", async () => {
   let invoiceCustomers = [];
 
   try {
-    // Get both customer data and invoice data through IPC
+    // Get both customer data and invoice data through secure API
     const [customers, invoices] = await Promise.all([
-      ipcRenderer.invoke("get-data", "customers"),
-      ipcRenderer.invoke("get-data", "invoices"),
+      window.electronAPI.getData("customers"),
+      window.electronAPI.getData("invoices"),
     ]);
 
     customersData = customers || [];
@@ -162,11 +160,11 @@ window.addEventListener("DOMContentLoaded", async () => {
             );
           }
 
-          // Save through IPC - only save customersData, not invoiceCustomers
-          const result = await ipcRenderer.invoke("save-data", {
-            type: "customers",
-            data: customersData,
-          });
+          // Save through secure API - only save customersData, not invoiceCustomers
+          const result = await window.electronAPI.saveData(
+            "customers",
+            customersData
+          );
 
           if (result.success) {
             // Close modal
@@ -327,10 +325,10 @@ window.addEventListener("DOMContentLoaded", async () => {
             customersData.splice(index, 1);
 
             // Save through IPC
-            const result = await ipcRenderer.invoke("save-data", {
-              type: "customers",
-              data: customersData,
-            });
+            const result = await window.electronAPI.saveData(
+              "customers",
+              customersData
+            );
 
             if (result.success) {
               // Update UI with combined data

@@ -1,6 +1,7 @@
 const { app, BrowserWindow, ipcMain, dialog } = require("electron");
 const path = require("path");
 const fs = require("fs");
+const { InvoiceGenerator } = require("./src/invoiceGenerator");
 require("@electron/remote/main").initialize();
 
 // Global references
@@ -41,9 +42,10 @@ function createWindow() {
     width: 1024,
     height: 768,
     webPreferences: {
-      contextIsolation: false,
-      nodeIntegration: true,
+      contextIsolation: true,
+      nodeIntegration: false,
       enableRemoteModule: true,
+      preload: path.join(__dirname, "preload.js"),
     },
   });
 
@@ -180,6 +182,29 @@ ipcMain.handle("save-pdf", async (event, { filePath, data }) => {
     return { success: true };
   } catch (error) {
     console.error("Error saving PDF:", error);
+    return { success: false, error: error.message };
+  }
+});
+
+// Generate and save invoice PDF
+ipcMain.handle("generate-invoice-pdf", async (event, { invoice, filePath }) => {
+  try {
+    // Get company data
+    const companyData = JSON.parse(
+      fs.readFileSync(global.paths.companyData, "utf8")
+    );
+
+    // Create invoice generator
+    const generator = new InvoiceGenerator(companyData);
+    const pdf = generator.generateInvoicePDF(invoice);
+
+    // Save PDF
+    const pdfData = pdf.output("arraybuffer");
+    fs.writeFileSync(filePath, Buffer.from(pdfData));
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error generating PDF:", error);
     return { success: false, error: error.message };
   }
 });

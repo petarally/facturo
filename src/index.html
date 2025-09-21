@@ -14,19 +14,50 @@
       rel="stylesheet"
     />
     <style>
+      /* Additional pink theme styles */
       .card {
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        background: var(--soft-pink, #fff0f3);
+        border: 2px solid var(--medium-pink, #f8bbd9);
+        border-radius: 20px;
+        box-shadow: 0 8px 25px rgba(233, 30, 99, 0.15);
         margin-bottom: 30px;
       }
       .form-heading {
-        background-color: #f8f9fa;
-        padding: 15px;
-        margin-bottom: 20px;
-        border-left: 4px solid #007bff;
+        background: linear-gradient(
+          135deg,
+          #e91e63 0%,
+          #f8bbd9 50%,
+          #fce4ec 100%
+        );
+        color: white;
+        padding: 25px;
+        margin-bottom: 30px;
+        border-radius: 15px;
+        text-align: center;
+        position: relative;
+      }
+      .form-heading::before {
+        content: "✨ ⭐ ✨";
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 1.5em;
+        animation: float-stars 3s ease-in-out infinite;
+      }
+      @keyframes float-stars {
+        0%,
+        100% {
+          transform: translateX(-50%) translateY(0px);
+        }
+        50% {
+          transform: translateX(-50%) translateY(-5px);
+        }
       }
       .required-field::after {
-        content: " *";
-        color: red;
+        content: " ⭐";
+        color: #ffd700;
+        font-size: 0.8em;
       }
     </style>
   </head>
@@ -34,9 +65,9 @@
     <div class="container">
       <div class="row mt-5">
         <div class="col-lg-8 offset-lg-2">
-          <div class="form-heading">
-            <h1>Unesite podatke o obrtu</h1>
-            <p class="text-muted">
+          <div class="form-heading star-decoration">
+            <h1>✨ Unesite podatke o obrtu ✨</h1>
+            <p class="text-white-50">
               Ovi podaci će se prikazivati na računima i u knjizi prometa
             </p>
           </div>
@@ -184,11 +215,16 @@
 
                 <div class="form-group mt-4">
                   <button type="submit" class="btn btn-primary btn-lg">
-                    Spremi podatke
+                    ✨ Spremi podatke ⭐
                   </button>
                 </div>
               </form>
             </div>
+          </div>
+
+          <!-- Brand signature -->
+          <div class="brand-signature mt-4">
+            <small class="text-muted">✨ Powered by beautiful design ✨</small>
           </div>
         </div>
       </div>

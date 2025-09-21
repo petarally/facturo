@@ -1,6 +1,3 @@
-const { ipcRenderer } = require("electron");
-const ExcelJS = require("exceljs");
-
 // Helper function to format dates consistently
 const formatDate = (dateString) => {
   const date = new Date(dateString);
@@ -60,10 +57,10 @@ window.addEventListener("DOMContentLoaded", async () => {
   let invoicesData, companyData;
 
   try {
-    // Get data through IPC instead of direct file access
+    // Get data through secure API instead of direct file access
     [invoicesData, companyData] = await Promise.all([
-      ipcRenderer.invoke("get-data", "invoices"),
-      ipcRenderer.invoke("get-data", "companyData"),
+      window.electronAPI.getData("invoices"),
+      window.electronAPI.getData("companyData"),
     ]);
 
     // Remove loading indicator
@@ -181,7 +178,7 @@ window.addEventListener("DOMContentLoaded", async () => {
           const selectedYear = document.getElementById("year-select").value;
 
           // Get template Excel file through IPC
-          const excelTemplate = await ipcRenderer.invoke("get-excel-template");
+          const excelTemplate = await window.electronAPI.getExcelTemplate();
 
           if (!excelTemplate) {
             throw new Error("Predložak za izvoz nije pronađen");

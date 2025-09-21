@@ -1,5 +1,3 @@
-const { ipcRenderer } = require("electron");
-
 // Helper for showing feedback messages
 function showFeedback(message, isError = false, duration = 3000) {
   const feedbackEl = document.getElementById("feedback-container");
@@ -30,8 +28,8 @@ window.addEventListener("DOMContentLoaded", async () => {
   `;
 
   try {
-    // Get services data through IPC
-    const servicesData = await ipcRenderer.invoke("get-data", "services");
+    // Get services data through secure API
+    const servicesData = await window.electronAPI.getData("services");
 
     // Clear loading indicator
     serviceList.innerHTML = "";
@@ -83,11 +81,11 @@ window.addEventListener("DOMContentLoaded", async () => {
             // Remove from array
             servicesData.splice(index, 1);
 
-            // Update via IPC
-            const result = await ipcRenderer.invoke("save-data", {
-              type: "services",
-              data: servicesData,
-            });
+            // Update via secure API
+            const result = await window.electronAPI.saveData(
+              "services",
+              servicesData
+            );
 
             if (result.success) {
               // Remove from DOM without reload
@@ -143,6 +141,13 @@ window.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("back-button").addEventListener("click", () => {
     window.location.href = "hello.html";
   });
+
+  // Bottom back button handler
+  document
+    .getElementById("back-button-bottom")
+    ?.addEventListener("click", () => {
+      window.location.href = "hello.html";
+    });
 
   // Add service button handler
   document

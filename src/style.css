@@ -1,0 +1,404 @@
+/* ✨ Facturo Pink Theme with Stars ✨ */
+/* Design for sanjaparaminski.com */
+
+:root {
+  --primary-pink: #e91e63;
+  --light-pink: #fce4ec;
+  --medium-pink: #f8bbd9;
+  --dark-pink: #ad1457;
+  --accent-pink: #ff69b4;
+  --soft-pink: #fff0f3;
+  --star-gold: #ffd700;
+  --gradient-pink: linear-gradient(
+    135deg,
+    #e91e63 0%,
+    #f8bbd9 50%,
+    #fce4ec 100%
+  );
+  --gradient-soft: linear-gradient(135deg, #fff0f3 0%, #fce4ec 100%);
+}
+
+/* Background with animated stars */
+body {
+  background: var(--gradient-soft);
+  position: relative;
+  min-height: 100vh;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Animated star background */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: radial-gradient(
+      2px 2px at 20px 30px,
+      var(--star-gold),
+      transparent
+    ),
+    radial-gradient(2px 2px at 40px 70px, var(--accent-pink), transparent),
+    radial-gradient(1px 1px at 90px 40px, var(--star-gold), transparent),
+    radial-gradient(1px 1px at 130px 80px, var(--accent-pink), transparent),
+    radial-gradient(2px 2px at 160px 30px, var(--star-gold), transparent);
+  background-repeat: repeat;
+  background-size: 200px 100px;
+  animation: sparkle 20s linear infinite;
+  opacity: 0.3;
+  z-index: -1;
+}
+
+@keyframes sparkle {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* Star decorations */
+.star-decoration {
+  position: relative;
+}
+
+.star-decoration::before {
+  content: "✨";
+  position: absolute;
+  left: -30px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.2em;
+  animation: twinkle 2s ease-in-out infinite alternate;
+}
+
+.star-decoration::after {
+  content: "✨";
+  position: absolute;
+  right: -30px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.2em;
+  animation: twinkle 2s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes twinkle {
+  0% {
+    opacity: 0.5;
+    transform: translateY(-50%) scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(-50%) scale(1.2);
+  }
+}
+
+/* Pink-themed cards */
+.card {
+  background: var(--soft-pink);
+  border: 2px solid var(--medium-pink);
+  border-radius: 20px;
+  box-shadow: 0 8px 25px rgba(233, 30, 99, 0.15);
+  margin-bottom: 30px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.card::before {
+  content: "";
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: var(--gradient-pink);
+  z-index: -1;
+  border-radius: 22px;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 35px rgba(233, 30, 99, 0.25);
+}
+
+.card-header {
+  background: var(--gradient-pink);
+  color: white;
+  border-bottom: none;
+  font-weight: 600;
+  position: relative;
+}
+
+.card-header::after {
+  content: "⭐";
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  animation: rotate-star 3s linear infinite;
+}
+
+@keyframes rotate-star {
+  0% {
+    transform: translateY(-50%) rotate(0deg);
+  }
+  100% {
+    transform: translateY(-50%) rotate(360deg);
+  }
+}
+
+/* Pink-themed form elements */
+.form-heading {
+  background: var(--gradient-pink);
+  color: white;
+  padding: 25px;
+  margin-bottom: 30px;
+  border-radius: 15px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.form-heading::before {
+  content: "✨ ⭐ ✨";
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1.5em;
+  animation: float-stars 3s ease-in-out infinite;
+}
+
+@keyframes float-stars {
+  0%,
+  100% {
+    transform: translateX(-50%) translateY(0px);
+  }
+  50% {
+    transform: translateX(-50%) translateY(-5px);
+  }
+}
+
+.form-heading h1 {
+  margin: 20px 0 10px 0;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Pink buttons */
+.btn-primary {
+  background: var(--gradient-pink);
+  border: none;
+  border-radius: 25px;
+  padding: 12px 30px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary::before {
+  content: "✨";
+  position: absolute;
+  left: 10px;
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover::before {
+  opacity: 1;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(233, 30, 99, 0.4);
+}
+
+.btn-secondary {
+  background: var(--medium-pink);
+  border: none;
+  border-radius: 25px;
+  color: var(--dark-pink);
+  font-weight: 600;
+}
+
+/* Pink form controls */
+.form-control {
+  border: 2px solid var(--light-pink);
+  border-radius: 15px;
+  padding: 12px 20px;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.form-control:focus {
+  border-color: var(--primary-pink);
+  box-shadow: 0 0 0 0.2rem rgba(233, 30, 99, 0.25);
+  background: var(--soft-pink);
+}
+
+/* Pink alerts */
+.alert-success {
+  background: var(--light-pink);
+  border: 2px solid var(--medium-pink);
+  color: var(--dark-pink);
+  border-radius: 15px;
+  position: relative;
+}
+
+.alert-success::before {
+  content: "⭐";
+  margin-right: 10px;
+  animation: pulse-star 1s ease-in-out infinite;
+}
+
+@keyframes pulse-star {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+}
+
+.alert-danger {
+  background: #ffebee;
+  border: 2px solid #f8bbd9;
+  color: #ad1457;
+  border-radius: 15px;
+}
+
+.alert-info {
+  background: var(--soft-pink);
+  border: 2px solid var(--medium-pink);
+  color: var(--dark-pink);
+  border-radius: 15px;
+}
+
+/* Navigation and lists */
+.list-group-item {
+  border: 1px solid var(--light-pink);
+  background: var(--soft-pink);
+  margin-bottom: 5px;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+.list-group-item:hover {
+  background: var(--light-pink);
+  transform: translateX(5px);
+}
+
+/* Pink badges and tags */
+.badge-primary {
+  background: var(--primary-pink);
+  border-radius: 15px;
+  padding: 8px 15px;
+}
+
+/* Loading spinners with pink theme */
+.spinner-border-pink {
+  color: var(--primary-pink);
+}
+
+/* Custom star bullets for lists */
+ul.star-list {
+  list-style: none;
+  padding-left: 0;
+}
+
+ul.star-list li::before {
+  content: "⭐ ";
+  margin-right: 10px;
+  color: var(--star-gold);
+}
+
+/* Pink themed tables */
+.table-pink {
+  background: var(--soft-pink);
+}
+
+.table-pink th {
+  background: var(--gradient-pink);
+  color: white;
+  border: none;
+}
+
+.table-pink td {
+  border-color: var(--light-pink);
+}
+
+/* Responsive enhancements */
+@media (max-width: 768px) {
+  .star-decoration::before,
+  .star-decoration::after {
+    display: none;
+  }
+
+  .form-heading {
+    padding: 20px 15px;
+  }
+
+  .btn-primary {
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+}
+
+/* Special elements for sanjaparaminski.com branding */
+.brand-signature {
+  text-align: center;
+  margin-top: 30px;
+  padding: 20px;
+  background: var(--gradient-soft);
+  border-radius: 15px;
+  border: 1px solid var(--light-pink);
+}
+
+.brand-signature::before {
+  content: "✨ Designed for sanjaparaminski.com ✨";
+  display: block;
+  color: var(--primary-pink);
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+/* Floating action buttons */
+.fab-pink {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: var(--gradient-pink);
+  color: white;
+  border: none;
+  box-shadow: 0 4px 20px rgba(233, 30, 99, 0.4);
+  font-size: 24px;
+  transition: all 0.3s ease;
+  z-index: 1000;
+}
+
+.fab-pink:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 25px rgba(233, 30, 99, 0.6);
+}
+
+/* Pink themed progress bars */
+.progress-pink .progress-bar {
+  background: var(--gradient-pink);
+  border-radius: 10px;
+}
+
+.progress-pink {
+  background: var(--light-pink);
+  border-radius: 10px;
+  height: 8px;
+}

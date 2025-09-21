@@ -1,6 +1,3 @@
-const { ipcRenderer } = require("electron");
-const { dialog } = require("@electron/remote");
-
 window.addEventListener("DOMContentLoaded", async () => {
   // Elements
   const invoiceForm = document.getElementById("invoice-form");
@@ -20,27 +17,37 @@ window.addEventListener("DOMContentLoaded", async () => {
   // State
   let selectedServices = [];
 
-  // Initialize data
+  // Initialize data with better loading state
   try {
+    // Show loading state
+    invoiceServiceSelect.innerHTML =
+      "<option disabled selected>Učitavanje usluga...</option>";
+
     // Get services data
-    const servicesData = await ipcRenderer.invoke("get-data", "services");
+    const servicesData = await window.electronAPI.getData("services");
+
+    // Clear loading option
+    invoiceServiceSelect.innerHTML =
+      '<option value="" disabled selected>Odaberite uslugu</option>';
 
     if (servicesData.length === 0) {
       showFeedback(
         "Nema dostupnih usluga. Dodajte usluge prije kreiranja računa.",
         true
       );
+      invoiceServiceSelect.innerHTML =
+        "<option disabled>Nema dostupnih usluga</option>";
     } else {
       servicesData.forEach((service) => {
         const option = document.createElement("option");
         option.value = JSON.stringify(service);
-        option.textContent = `${service.name} - ${service.price} €`;
+        option.textContent = `${service.name} - ${service.price.toFixed(2)} €`;
         invoiceServiceSelect.appendChild(option);
       });
     }
 
     // Get invoices data for last invoice number
-    const invoicesData = await ipcRenderer.invoke("get-data", "invoices");
+    const invoicesData = await window.electronAPI.getData("invoices");
     const lastInvoiceNumber =
       invoicesData.length > 0
         ? invoicesData[invoicesData.length - 1].number
@@ -49,10 +56,15 @@ window.addEventListener("DOMContentLoaded", async () => {
     lastInvoiceNumberSpan.textContent = `Posljednji broj računa: ${lastInvoiceNumber}`;
 
     // Set default date to today
-    document.getElementById("invoice-date").valueAsDate = new Date();
+    const today = new Date();
+    document.getElementById("invoice-date").value = today
+      .toISOString()
+      .split("T")[0];
   } catch (error) {
     console.error("Error initializing invoice form:", error);
     showFeedback("Greška prilikom učitavanja podataka", true);
+    invoiceServiceSelect.innerHTML =
+      "<option disabled>Greška pri učitavanju</option>";
   }
 
   // Add service to invoice
@@ -150,27 +162,60 @@ window.addEventListener("DOMContentLoaded", async () => {
       };
 
       // Save dialog for PDF
-      const saveDialog = await dialog.showSaveDialog({
-        title: "Spremi račun",
+      const saveDialog = await window.electronAPI.showSaveDialog({
+        title: "Spremi račun kao PDF",
         defaultPath: `racun-${invoiceNumber.replace(/\//g, "-")}.pdf`,
         filters: [{ name: "PDF", extensions: ["pdf"] }],
       });
 
-      if (!saveDialog.canceled) {
+      if (!saveDialog.canceled && saveDialog.filePath) {
         const pdfPath = saveDialog.filePath;
-        // TODO: Implement PDF generation
-        // For now, notify user
-        showFeedback("PDF generiranje će biti implementirano uskoro", false);
+
+        // Generate PDF
+        showFeedback("Generiranje PDF-a...", false);
+        const pdfResult = await window.electronAPI.generateInvoicePdf(
+          invoice,
+          pdfPath
+        );
+
+        if (!pdfResult.success) {
+          showFeedback(
+            `Greška prilikom generiranja PDF-a: ${pdfResult.error}`,
+            true
+          );
+          return;
+        }
+
+        showFeedback("PDF uspješno kreiran!", false);
+      } else {
+        // User cancelled PDF save, ask if they want to continue
+        if (
+          !confirm(
+            "PDF nije spremljen. Želite li ipak spremiti račun u bazu podataka?"
+          )
+        ) {
+          return;
+        }
       }
 
       // Save invoice data through IPC
-      const invoicesData = await ipcRenderer.invoke("get-data", "invoices");
+      const invoicesData = await window.electronAPI.getData("invoices");
+
+      // Check for duplicate invoice numbers
+      const duplicateInvoice = invoicesData.find(
+        (inv) => inv.number === invoiceNumber
+      );
+      if (duplicateInvoice) {
+        showFeedback("Račun s tim brojem već postoji!", true);
+        return;
+      }
+
       invoicesData.push(invoice);
 
-      const result = await ipcRenderer.invoke("save-data", {
-        type: "invoices",
-        data: invoicesData,
-      });
+      const result = await window.electronAPI.saveData(
+        "invoices",
+        invoicesData
+      );
 
       if (result.success) {
         showFeedback("Račun uspješno kreiran!");
@@ -186,7 +231,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   // Back button
   document.getElementById("back-button").addEventListener("click", () => {
-    window.history.back();
+    window.location.href = "hello.html";
   });
 
   // Helper functions

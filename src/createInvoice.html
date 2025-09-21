@@ -17,7 +17,9 @@
       #last-invoice-number {
         margin-bottom: 10px;
         font-size: 1rem;
-        color: #dc3545;
+        color: var(--primary-pink, #e91e63);
+        text-align: center;
+        font-weight: 600;
       }
       .form-group {
         margin-bottom: 1.5rem;
@@ -28,24 +30,66 @@
         margin-bottom: 50px;
       }
       .service-item {
-        animation: fadeIn 0.3s;
+        animation: fadeInStar 0.5s ease-in-out;
       }
-      @keyframes fadeIn {
+      @keyframes fadeInStar {
         from {
           opacity: 0;
+          transform: translateY(-10px) scale(0.9);
         }
         to {
           opacity: 1;
+          transform: translateY(0) scale(1);
         }
       }
       .card {
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        background: var(--soft-pink, #fff0f3);
+        border: 2px solid var(--medium-pink, #f8bbd9);
+        border-radius: 20px;
+        box-shadow: 0 8px 25px rgba(233, 30, 99, 0.15);
+      }
+      .page-header {
+        background: linear-gradient(
+          135deg,
+          #e91e63 0%,
+          #f8bbd9 50%,
+          #fce4ec 100%
+        );
+        color: white;
+        padding: 25px;
+        margin-bottom: 30px;
+        border-radius: 15px;
+        text-align: center;
+        position: relative;
+      }
+      .page-header::before {
+        content: "💰 ✨ 💰";
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 1.5em;
+        animation: float-stars 3s ease-in-out infinite;
+      }
+      @keyframes float-stars {
+        0%,
+        100% {
+          transform: translateX(-50%) translateY(0px);
+        }
+        50% {
+          transform: translateX(-50%) translateY(-5px);
+        }
       }
     </style>
   </head>
   <body>
     <div class="container">
-      <h1 class="text-center mb-4">Kreiraj račun</h1>
+      <div class="page-header star-decoration">
+        <h1>✨ Kreiraj novi račun ✨</h1>
+        <p class="text-white-50">
+          Izradite profesionalne račune za vaše klijente
+        </p>
+      </div>
 
       <!-- Feedback area -->
       <div

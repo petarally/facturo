@@ -1,4 +1,3 @@
-const { ipcRenderer } = require("electron");
 const { jsPDF } = require("jspdf");
 
 // Feedback function to replace alerts
@@ -41,11 +40,11 @@ window.addEventListener("DOMContentLoaded", async () => {
     loadingEl.textContent = "Učitavanje računa...";
     document.body.insertBefore(loadingEl, document.body.firstChild);
 
-    // Get data through IPC
+    // Get data through secure API
     const [invoices, company, fontData] = await Promise.all([
-      ipcRenderer.invoke("get-data", "invoices"),
-      ipcRenderer.invoke("get-data", "companyData"),
-      ipcRenderer.invoke("get-font-data", "calibri"),
+      window.electronAPI.getData("invoices"),
+      window.electronAPI.getData("companyData"),
+      window.electronAPI.getFontData("calibri"),
     ]);
 
     // Hide loading indicator
@@ -115,7 +114,7 @@ window.addEventListener("DOMContentLoaded", async () => {
           showFeedback("Generiranje PDF-a...");
 
           // Ask user where to save the PDF
-          const result = await ipcRenderer.invoke("show-save-dialog", {
+          const result = await window.electronAPI.showSaveDialog({
             title: "Spremi PDF",
             defaultPath: `racun-${invoice.number.replace(/\//g, "-")}.pdf`,
             filters: [{ name: "PDF datoteke", extensions: ["pdf"] }],
@@ -148,11 +147,11 @@ window.addEventListener("DOMContentLoaded", async () => {
             callback: async (doc) => {
               const pdfData = doc.output("arraybuffer");
 
-              // Save PDF via IPC
-              const saveResult = await ipcRenderer.invoke("save-pdf", {
+              // Save PDF via secure API
+              const saveResult = await window.electronAPI.savePdf(
                 filePath,
-                data: Array.from(new Uint8Array(pdfData)),
-              });
+                Array.from(new Uint8Array(pdfData))
+              );
 
               if (saveResult.success) {
                 showFeedback(`PDF uspješno spremljen: ${filePath}`);
