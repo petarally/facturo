@@ -210,10 +210,13 @@ window.addEventListener("DOMContentLoaded", async () => {
         }
       });
 
-    // Back button handler
-    document.getElementById("back-button").addEventListener("click", () => {
-      window.location.href = "hello.html";
-    });
+    // Back button handler with safety check
+    const backButton = document.getElementById("back-button");
+    if (backButton) {
+      backButton.addEventListener("click", () => {
+        window.location.href = "hello.html";
+      });
+    }
 
     // Initial render - current month and year
     const currentDate = new Date();

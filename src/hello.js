@@ -80,13 +80,20 @@ window.addEventListener("DOMContentLoaded", async () => {
   setupNavigationButton("customers-button", "viewCustomers.html");
   setupNavigationButton("reports-button", "viewInvoices.html");
 
-  // Helper function for button navigation
+  // Helper function for button navigation with improved error handling
   function setupNavigationButton(buttonId, destination) {
     const button = document.getElementById(buttonId);
     if (button) {
       button.addEventListener("click", () => {
-        window.location.href = destination;
+        try {
+          window.location.href = destination;
+        } catch (error) {
+          console.error(`Navigation error for button ${buttonId}:`, error);
+          alert(`Greška pri navigaciji: ${error.message}`);
+        }
       });
+    } else {
+      console.warn(`Button with ID '${buttonId}' not found`);
     }
   }
 });

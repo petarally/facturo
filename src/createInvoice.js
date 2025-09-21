@@ -7,6 +7,13 @@ window.addEventListener("DOMContentLoaded", async () => {
   const invoiceAmountInput = document.getElementById("invoice-amount");
   const invoiceNumberInput = document.getElementById("invoice-number");
   const lastInvoiceNumberSpan = document.getElementById("last-invoice-number");
+
+  // Check if required elements exist
+  if (!invoiceForm || !invoiceServiceSelect || !invoiceServicesList) {
+    console.error("Required form elements not found");
+    return;
+  }
+
   const feedbackEl = document.createElement("div");
 
   // Setup feedback element
@@ -229,10 +236,13 @@ window.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
-  // Back button
-  document.getElementById("back-button").addEventListener("click", () => {
-    window.location.href = "hello.html";
-  });
+  // Back button with safety check
+  const backButton = document.getElementById("back-button");
+  if (backButton) {
+    backButton.addEventListener("click", () => {
+      window.location.href = "hello.html";
+    });
+  }
 
   // Helper functions
   function updateTotalAmount() {
