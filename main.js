@@ -1,9 +1,24 @@
-const { app, BrowserWindow, ipcMain, dialog } = require("electron");
+// Electron and core imports FIRST
 const path = require("path");
 const fs = require("fs");
+const ExcelJS = require("exceljs");
 const { InvoiceGenerator } = require("./src/invoiceGenerator");
+const { app, BrowserWindow, ipcMain, dialog } = require("electron");
 require("@electron/remote/main").initialize();
 
+// IPC handler for show-save-dialog
+ipcMain.handle("show-save-dialog", async (event, options) => {
+  try {
+    const result = await dialog.showSaveDialog(
+      BrowserWindow.getFocusedWindow(),
+      options
+    );
+    return result;
+  } catch (error) {
+    console.error("Error in show-save-dialog handler:", error);
+    throw error;
+  }
+});
 // Global references
 let mainWindow;
 const userDataPath = app.getPath("userData");
@@ -142,27 +157,6 @@ ipcMain.handle("get-data-paths", () => {
   return global.paths;
 });
 
-// File dialogs
-ipcMain.handle("show-save-dialog", async (event, options) => {
-  try {
-    const result = await dialog.showSaveDialog(options);
-    return result;
-  } catch (error) {
-    console.error("Error in save dialog:", error);
-    return { canceled: true, error: error.message };
-  }
-});
-
-ipcMain.handle("show-open-dialog", async (event, options) => {
-  try {
-    const result = await dialog.showOpenDialog(options);
-    return result;
-  } catch (error) {
-    console.error("Error in open dialog:", error);
-    return { canceled: true, error: error.message };
-  }
-});
-
 // Get font data handler
 ipcMain.handle("get-font-data", async (event, fontName) => {
   try {
@@ -209,10 +203,32 @@ ipcMain.handle("generate-invoice-pdf", async (event, { invoice, filePath }) => {
   }
 });
 
+// IPC handler for exporting 'Knjiga prometa' as Excel
+ipcMain.handle("export-knjiga-prometa", async (event, rows = []) => {
+  try {
+    if (!Array.isArray(rows)) rows = [];
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet("Sheet1");
+    // Write each row as a plain row, no header, no footer
+    rows.forEach((row, i) => {
+      // If row is an object, write its values; if array, write as-is
+      if (typeof row === "object" && !Array.isArray(row)) {
+        sheet.addRow(Object.values(row));
+      } else {
+        sheet.addRow(row);
+      }
+    });
+    const buffer = await workbook.xlsx.writeBuffer();
+    return buffer;
+  } catch (error) {
+    console.error("Error exporting rows to Excel:", error);
+    throw error;
+  }
+});
+
 // Get Excel template handler
 ipcMain.handle("get-excel-template", async () => {
   try {
-    // Updated path to point to the new location
     const templatePath = path.join(
       __dirname,
       "src",

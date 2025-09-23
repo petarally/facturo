@@ -27,4 +27,10 @@ contextBridge.exposeInMainWorld("electronAPI", {
 
   // Remove listeners (cleanup)
   removeAllListeners: (channel) => ipcRenderer.removeAllListeners(channel),
+
+  // Export knjiga prometa to Excel (IPC)
+  exportKnjigaPrometa: (rows) => {
+    console.log("preload exportKnjigaPrometa rows:", rows);
+    return ipcRenderer.invoke("export-knjiga-prometa", rows);
+  },
 });

@@ -177,32 +177,45 @@ window.addEventListener("DOMContentLoaded", async () => {
 
       if (!saveDialog.canceled && saveDialog.filePath) {
         const pdfPath = saveDialog.filePath;
-
-        // Generate PDF
         showFeedback("Generiranje PDF-a...", false);
-        const pdfResult = await window.electronAPI.generateInvoicePdf(
-          invoice,
-          pdfPath
+
+        // Open the invoice template in a new window, inject invoice data, and export to PDF
+        const invoiceWindow = window.open(
+          `../template/invoiceTemplate.html`,
+          "_blank",
+          "width=800,height=1000,menubar=no,toolbar=no,location=no,status=no"
         );
-
-        if (!pdfResult.success) {
-          showFeedback(
-            `Greška prilikom generiranja PDF-a: ${pdfResult.error}`,
-            true
-          );
-          return;
-        }
-
-        showFeedback("PDF uspješno kreiran!", false);
-      } else {
-        // User cancelled PDF save, ask if they want to continue
-        if (
-          !confirm(
-            "PDF nije spremljen. Želite li ipak spremiti račun u bazu podataka?"
-          )
-        ) {
-          return;
-        }
+        invoiceWindow.onload = async () => {
+          // Inject invoice data using postMessage
+          invoiceWindow.postMessage({ type: "inject-invoice", invoice }, "*");
+          setTimeout(() => {
+            const invoiceContent =
+              invoiceWindow.document.getElementById("invoice-content");
+            const opt = {
+              margin: 0,
+              filename: pdfPath,
+              image: { type: "jpeg", quality: 0.98 },
+              html2canvas: { scale: 2 },
+              jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+            };
+            html2pdf()
+              .set(opt)
+              .from(invoiceContent)
+              .toPdf()
+              .save(pdfPath)
+              .then(() => {
+                showFeedback("PDF uspješno kreiran!", false);
+                invoiceWindow.close();
+              })
+              .catch((error) => {
+                showFeedback(
+                  `Greška pri generiranju PDF-a: ${error.message}`,
+                  true
+                );
+                invoiceWindow.close();
+              });
+          }, 1000); // Wait for DOM/data injection
+        };
       }
 
       // Save invoice data through IPC

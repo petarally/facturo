@@ -231,7 +231,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   }
 });
 
-// Generate Excel report from template and data
+// Generate Excel report using IPC to main process
 async function generateExcelReport(
   templateBuffer,
   companyData,
@@ -239,32 +239,7 @@ async function generateExcelReport(
   selectedMonth,
   selectedYear
 ) {
-  // Create workbook from template buffer
-  const workbook = new ExcelJS.Workbook();
-  await workbook.xlsx.load(templateBuffer);
-
-  const worksheet = workbook.getWorksheet(1);
-
-  // Fill company data
-  worksheet.getCell("D4").value = companyData.opis;
-  worksheet.getCell("E4").value = companyData.opis;
-  worksheet.getCell("F4").value = companyData.kod_djelatnosti;
-  worksheet.getCell("E5").value = companyData.vlasnik;
-  worksheet.getCell("F5").value = companyData.vlasnik;
-  worksheet.getCell("G5").value = companyData.vlasnik;
-  worksheet.getCell("E6").value = `${companyData.adresa}, ${companyData.grad}`;
-  worksheet.getCell("F6").value = `${companyData.adresa}, ${companyData.grad}`;
-  worksheet.getCell("G6").value = `${companyData.adresa}, ${companyData.grad}`;
-  worksheet.getCell("E7").value = companyData.oib;
-  worksheet.getCell("F7").value = companyData.oib;
-  worksheet.getCell("G7").value = companyData.oib;
-  worksheet.getCell("C9").value = companyData.opis;
-  worksheet.getCell("D9").value = companyData.opis;
-  worksheet.getCell("E9").value = companyData.opis;
-  worksheet.getCell("F9").value = companyData.opis;
-  worksheet.getCell("G9").value = companyData.opis;
-
-  // Set title with month/year
+  // Prepare rows for export
   const monthNames = [
     "Siječanj",
     "Veljača",
@@ -279,18 +254,6 @@ async function generateExcelReport(
     "Studeni",
     "Prosinac",
   ];
-
-  // Set report period (if month is "all", show whole year)
-  const periodText =
-    selectedMonth === "all"
-      ? `KNJIGA PROMETA ZA ${selectedYear}.`
-      : `KNJIGA PROMETA ZA ${
-          monthNames[parseInt(selectedMonth) - 1]
-        } ${selectedYear}.`;
-
-  worksheet.getCell("A1").value = periodText;
-
-  // Filter and sort invoices
   const filteredInvoices = invoicesData.filter((invoice) => {
     const invoiceDate = new Date(invoice.date);
     return (
@@ -299,70 +262,22 @@ async function generateExcelReport(
       invoiceDate.getFullYear() === parseInt(selectedYear)
     );
   });
-
-  // Sort by date
   filteredInvoices.sort((a, b) => new Date(a.date) - new Date(b.date));
-
-  // Clear existing data rows (assuming data starts at row 13)
-  for (let i = 13; i < worksheet.rowCount; i++) {
-    worksheet.spliceRows(13, 1);
-  }
-
-  // Write filtered and sorted invoices to the worksheet
-  let sum = 0;
-  filteredInvoices.forEach((invoice, index) => {
-    const rowIndex = 13 + index; // Start from row 13
-    const row = worksheet.insertRow(rowIndex, [
-      index + 1,
-      formatDate(invoice.date),
-      invoice.number,
-      null,
-      null,
-      parseFloat(invoice.discountedAmount),
-      parseFloat(invoice.discountedAmount),
-    ]);
-    sum += parseFloat(invoice.discountedAmount);
-
-    // Add borders to the cells
-    row.eachCell((cell) => {
-      cell.border = {
-        top: { style: "thin" },
-        left: { style: "thin" },
-        bottom: { style: "thin" },
-        right: { style: "thin" },
-      };
-    });
-  });
-
-  // Add total row
-  const totalRowIndex = 13 + filteredInvoices.length;
-  const totalRow = worksheet.insertRow(totalRowIndex, [
-    "ZBROJ",
-    null,
-    null,
-    null,
-    null,
-    sum,
-    sum,
-  ]);
-
-  // Format total row
-  totalRow.eachCell((cell) => {
-    cell.font = { bold: true };
-    cell.border = {
-      top: { style: "thin" },
-      left: { style: "thin" },
-      bottom: { style: "thin" },
-      right: { style: "thin" },
-    };
-  });
-
-  // Create a Blob from the workbook
-  const buffer = await workbook.xlsx.writeBuffer();
+  // Map invoices to rows for Excel
+  const rows = Array.isArray(filteredInvoices)
+    ? filteredInvoices.map((invoice) => ({
+        date: formatDate(invoice.date),
+        number: invoice.number,
+        customer: invoice.customerName,
+        amount: parseFloat(invoice.discountedAmount),
+      }))
+    : [];
+  // Call main process to generate Excel buffer
+  const buffer = await window.electronAPI.exportKnjigaPrometa(rows || []);
+  // Create a Blob and URL for download
   const blob = new Blob([buffer], {
     type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   });
   const url = URL.createObjectURL(blob);
-
   return url;
 }
