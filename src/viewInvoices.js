@@ -72,20 +72,21 @@ window.addEventListener("DOMContentLoaded", async () => {
           ? "<div class='alert alert-info'>Nema računa za odabrani period</div>"
           : "";
 
-      filteredInvoices.forEach((invoice, index) => {
+      filteredInvoices.forEach((invoice) => {
+        const fullIndex = invoicesData.indexOf(invoice);
         const invoiceDiv = document.createElement("div");
         invoiceDiv.className = "invoice-item card mb-3";
         invoiceDiv.innerHTML = `
           <div class="card-body">
             <h5 class="card-title">
-              <a href="template/invoiceTemplate.html?invoiceId=${index}">Račun ${
+              <a href="template/invoiceTemplate.html?invoiceId=${fullIndex}">Račun ${
           invoice.number
         }</a>
             </h5>
             <p class="card-text">Ime kupca: ${invoice.customerName}</p>
             <p class="card-text">Datum: ${formatDate(invoice.date)}</p>
             <p class="card-text">Iznos: ${invoice.discountedAmount} €</p>
-            <button class="btn btn-sm btn-outline-primary view-invoice" data-index="${index}">
+            <button class="btn btn-sm btn-outline-primary view-invoice" data-index="${fullIndex}">
               Prikaži račun
             </button>
           </div>
@@ -96,7 +97,7 @@ window.addEventListener("DOMContentLoaded", async () => {
         invoiceDiv
           .querySelector(".view-invoice")
           .addEventListener("click", () => {
-            window.location.href = `template/invoiceTemplate.html?invoiceId=${index}`;
+            window.location.href = `template/invoiceTemplate.html?invoiceId=${fullIndex}`;
           });
       });
 
